@@ -59,19 +59,19 @@ local GetMessageInfo = function(msg)
 	if found and chan and name then
 		return name, chan
 	end
-	
+
 	-- Say, Yell, Whisper
 	found, _, name, name2, chan = string.find(msg, "^|Hplayer:([^|]+)|h%[([^%]]+)%]|h ([^:]+):")
 	if found and name and name2 and chan then
 		return name, chan
 	end
-	
+
 	-- Emote
 	found, _, name = string.find(msg, "^([^ ]+) ")
 	if found and name then
 		return name, "emote"
 	end
-	
+
 	return nil
 end
 
@@ -118,7 +118,7 @@ local UnbanRelog = function()
 			table.insert(unbanNames, banned[1])
 		end
 	end
-	
+
 	for _, name in unbanNames do
 		DelIgnore(name)
 	end
@@ -130,7 +130,7 @@ local CheckBanTimes = function()
 			table.insert(unbanNames, banned[1])
 		end
 	end
-	
+
 	for _, name in unbanNames do
 		DelIgnore(name)
 	end
@@ -155,13 +155,13 @@ local FormatTimeNoStyle = function(t)
 				tt = math.ceil(tt)
 				return tt .. " Min" .. _s(tt), "00ffff"
 			end
-			
+
 			tt = tt / 60
 			if tt < 24 then
 				tt = math.ceil(tt)
 				return tt .. " Hour" .. _s(tt), "ffff00"
 			end
-			
+
 			tt = tt / 24
 			tt = math.ceil(tt)
 			return tt .. " Day" .. _s(tt), "ff0000"
@@ -190,20 +190,20 @@ local FindBannedPlayer = function(name)
 			return index
 		end
 	end
-	
+
 	return nil
 end
 
 ------------- Global
 
 SI_IsPlayerIgnored = function(name)
-	
+
 	if FindBannedPlayer(name) then
 		return true
 	end
-	
+
 	name = string.lower(name)
-	
+
 	for _, test in SI_Global.BannedParts do
 		if string.find(name, test) then
 			return true
@@ -215,7 +215,7 @@ SI_IsPlayerIgnored = function(name)
 			return true
 		end
 	end
-	
+
 	return false
 end
 
@@ -243,7 +243,7 @@ local StaticPopup_Show_New		= nil
 AddIgnore_New = function(name)
 
 	name = FixPlayerName(name)
-	
+
 	if not FindBannedPlayer(name) then
 		table.insert(SI_Global.BannedPlayers, {name, CalcBanTime()})
 		IgnoreList_Update()
@@ -304,7 +304,7 @@ local StaticPopup_Show_New = function(type, a1, a2, a3)
 			return
 		end
 	end
-	
+
 	StaticPopup_Show_Old(type, a1, a2, a3)
 end
 
@@ -315,7 +315,7 @@ TradeFrame_OnEvent_New = function()
 			return
 		end
 	end
-	
+
 	TradeFrame_OnEvent_Old()
 end
 
@@ -341,28 +341,28 @@ local HookFunctions = function()
 
 	StaticPopup_Show_Old	= StaticPopup_Show
 	StaticPopup_Show		= StaticPopup_Show_New
-	
+
 	TradeFrame_OnEvent_Old	= TradeFrame_OnEvent
 	TradeFrame_OnEvent		= TradeFrame_OnEvent_New
-	
+
 	AddIgnore_Old			= AddIgnore
 	AddIgnore				= AddIgnore_New
-	
+
 	AddOrDelIgnore_Old		= AddOrDelIgnore
 	AddOrDelIgnore			= AddOrDelIgnore_New
-	
+
 	DelIgnore_Old			= DelIgnore
 	DelIgnore				= DelIgnore_New
-	
+
 	GetIgnoreName_Old		= GetIgnoreName
 	GetIgnoreName			= GetIgnoreName_New
-	
+
 	GetNumIgnores_Old		= GetNumIgnores
 	GetNumIgnores			= GetNumIgnores_New
-	
+
 	GetSelectedIgnore_Old	= GetSelectedIgnore
 	GetSelectedIgnore		= GetSelectedIgnore_New
-	
+
 	SetSelectedIgnore_Old	= SetSelectedIgnore
 	SetSelectedIgnore		= SetSelectedIgnore_New
 
@@ -375,7 +375,7 @@ local ReplaceOldIgnores = function()
 	for i = 1, GetNumIgnores_Old() do
 		AddIgnore_New(GetIgnoreName_Old(i))
 	end
-	
+
 	for _, banned in SI_Global.BannedPlayers do
 		DelIgnore_Old(banned[1])
 	end
@@ -395,15 +395,15 @@ local CreateFrames = function()
 	})
 	f:SetPoint("TOPLEFT", IgnoreListFrame, "TOPRIGHT", -34, -35)
 	f:Hide()
-	
+
 	local pad = -15
-	
+
 	local t = f:CreateFontString(nil, "OVERLAY", f)
 	t:SetPoint("TOP", f, "TOP", 0, pad)
 	t:SetFont("Fonts\\FRIZQT__.TTF", 12)
 	t:SetTextColor(1,0.82,0)
 	t:SetText(S_ADDON_NAME)
-	
+
 	local createOpt = function(index, var, desc, padding)
 		local c = CreateFrame("CheckButton", "SI_Box_"..index, f, "UICheckButtonTemplate")
 		c:SetHeight(20)
@@ -413,23 +413,23 @@ local CreateFrames = function()
 			SI_Global[var] = c:GetChecked()
 		end)
 		c:SetChecked(SI_Global[var])
-		
+
 		local ct = f:CreateFontString(nil, "OVERLAY", f)
 		ct:SetPoint("LEFT", c, "RIGHT", 0, 0)
 		ct:SetFont("Fonts\\FRIZQT__.TTF", 11)
 		ct:SetText(desc)
 	end
-	
+
 	pad = pad - 25
 	createOpt(0, "BanSpecial", S_BAN_SPECIAL, pad)
-	
+
 	pad = pad - 35
 	local ti = f:CreateFontString(nil, "OVERLAY", f)
 	ti:SetPoint("TOP", f, "TOP", 0, pad)
 	ti:SetFont("Fonts\\FRIZQT__.TTF", 11)
 	ti:SetTextColor(1,0.82,0)
 	ti:SetText(S_TEXT_OPTIONS)
-	
+
 	local options = {
 		{"BanOptWhisper",	S_BAN_WHISPER,	15},
 		{"BanOptParty",		S_BAN_PARTY,	15},
@@ -441,7 +441,7 @@ local CreateFrames = function()
 		{"BanOptTrade",		S_BAN_TRADE,	15},
 		{"BanOptInvite",	S_BAN_INVITE,	15}
 	}
-	
+
 	for i = 1, table.getn(options) do
 		local optVar		= options[i][1]
 		local optDesc		= options[i][2]
@@ -449,14 +449,14 @@ local CreateFrames = function()
 		pad = pad - optPadding
 		createOpt(i, optVar, optDesc, pad)
 	end
-	
+
 	pad = pad - 30
 	local dt = f:CreateFontString(nil, "OVERLAY", f)
 	dt:SetPoint("TOP", f, "TOP", 0, pad)
 	dt:SetFont("Fonts\\FRIZQT__.TTF", 11)
 	dt:SetTextColor(1,0.82,0)
 	dt:SetText(S_TEXT_DURATION)
-	
+
 	pad = pad - 15
 	local dd = CreateFrame("Button", "SI_BanDuration", f, "UIDropDownMenuTemplate")
 	dd:SetPoint("TOP", f, "TOP", 0, pad)
@@ -476,7 +476,7 @@ local CreateFrames = function()
 		end
 	end)
 	UIDropDownMenu_SetSelectedID(dd, SI_Global.BanDuration)
-	
+
 	local b = CreateFrame("Button", "SI_OpenButton", IgnoreListFrame, "UIPanelButtonTemplate")
 	b:SetHeight(21)
 	b:SetWidth(130)
@@ -496,16 +496,16 @@ MainFrame:RegisterEvent("ADDON_LOADED")
 MainFrame:SetScript("OnEvent", function()
 	if (event == "ADDON_LOADED") then
 		if (string.lower(arg1) == S_ADDON_DIR) then
-		
+
 			if not SI_Global then
 				SI_Global = {
 					BannedPlayers	= {},
 					BannedSelected	= 1,
 					BannedParts		= {},
-					
+
 					BanSpecial		= false,
 					BanDuration		= T_FOREVER,
-					
+
 					BanOptWhisper	= true,
 					BanOptParty		= false,
 					BanOptGuild		= false,
@@ -517,14 +517,14 @@ MainFrame:SetScript("OnEvent", function()
 					BanOptInvite	= true
 				}
 			end
-			
+
 			HookFunctions()
 			CreateFrames()
-			
+
 			ReplaceOldIgnores()
 			UnbanRelog()
 			CheckBanTimes()
-			
+
 			DEFAULT_CHAT_FRAME:AddMessage(S_ADDON_NAME .. " loaded.")
 		end
 	end
