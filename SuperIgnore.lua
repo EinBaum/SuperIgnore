@@ -293,15 +293,17 @@ SetSelectedIgnore_New = function(index)
 end
 
 local StaticPopup_Show_New = function(type, a1, a2, a3)
-	if type == "PARTY_INVITE" then
-		if SI_IsPlayerIgnored(a1) then
-			DeclineGroup()
-			return
-		end
-	elseif type == "GUILD_INVITE" then
-		if SI_IsPlayerIgnored(a1) then
-			DeclineGuild()
-			return
+	if SI_Global.BanOptInvite then
+		if type == "PARTY_INVITE" then
+			if SI_IsPlayerIgnored(a1) then
+				DeclineGroup()
+				return
+			end
+		elseif type == "GUILD_INVITE" then
+			if SI_IsPlayerIgnored(a1) then
+				DeclineGuild()
+				return
+			end
 		end
 	end
 
@@ -309,10 +311,12 @@ local StaticPopup_Show_New = function(type, a1, a2, a3)
 end
 
 TradeFrame_OnEvent_New = function()
-	if event == "TRADE_SHOW" or event == "TRADE_UPDATE" then
-		if SI_IsPlayerIgnored(UnitName("NPC")) then
-			CloseTrade()
-			return
+	if SI_Global.BanOptTrade then
+		if event == "TRADE_SHOW" or event == "TRADE_UPDATE" then
+			if SI_IsPlayerIgnored(UnitName("NPC")) then
+				CloseTrade()
+				return
+			end
 		end
 	end
 
