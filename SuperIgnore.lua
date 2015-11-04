@@ -97,15 +97,15 @@ local IsMessageIgnored = function(msg)
 end
 
 local CalcBanTime = function()
-	local d = T_Time[SI_Global.BanDuration]
-	if d == TS_FOREVER or d == TS_RELOG then
-		return d
+	local t = T_Time[SI_Global.BanDuration]
+	if t < 0 then
+		return t
 	else
-		return time() + d
+		return time() + t
 	end
 end
 local IsBanTimeOver = function(t)
-	if t == TS_FOREVER or t == TS_RELOG then
+	if t < 0 then
 		return false
 	else
 		return time() > t
@@ -376,12 +376,15 @@ local HookFunctions = function()
 end
 
 local ReplaceOldIgnores = function()
+
+	local oldNames = {}
 	for i = 1, GetNumIgnores_Old() do
-		AddIgnore_New(GetIgnoreName_Old(i))
+		table.insert(oldNames, GetIgnoreName_Old(i))
 	end
 
-	for _, banned in SI_Global.BannedPlayers do
-		DelIgnore_Old(banned[1])
+	for _, name in oldNames do
+		DelIgnore_Old(name)
+		AddIgnore_New(name)
 	end
 end
 
@@ -497,9 +500,10 @@ end
 
 local MainFrame = CreateFrame("frame")
 MainFrame:RegisterEvent("ADDON_LOADED")
+MainFrame:RegisterEvent("IGNORELIST_UPDATE")
 MainFrame:SetScript("OnEvent", function()
-	if (event == "ADDON_LOADED") then
-		if (string.lower(arg1) == S_ADDON_DIR) then
+	if event == "ADDON_LOADED" then
+		if string.lower(arg1) == S_ADDON_DIR then
 
 			if not SI_Global then
 				SI_Global = {
@@ -525,11 +529,13 @@ MainFrame:SetScript("OnEvent", function()
 			HookFunctions()
 			CreateFrames()
 
-			ReplaceOldIgnores()
 			UnbanRelog()
 			CheckBanTimes()
 
 			DEFAULT_CHAT_FRAME:AddMessage(S_ADDON_NAME .. " loaded.")
 		end
+	elseif event == "IGNORELIST_UPDATE" then
+		ReplaceOldIgnores()
+		MainFrame:UnregisterEvent("IGNORELIST_UPDATE")
 	end
 end)
