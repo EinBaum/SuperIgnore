@@ -1,0 +1,8 @@
+## Interface: 11200
+## Title: SuperIgnore
+## Notes: Unlimited ignore list with many extra features
+## Author: https://github.com/EinBaum
+## Version: 1.0
+## SavedVariables: SI_Global
+
+SuperIgnore.lua
