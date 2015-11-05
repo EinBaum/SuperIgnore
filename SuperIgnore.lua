@@ -1,47 +1,91 @@
 
-------------- Constants
-
-local S_ADDON_NAME	= "Super Ignore"
+local S_ADDON_NAME	= "SuperIgnore"
 local S_ADDON_DIR	= "superignore"
+local S_AUTO_RESPONSE	= "Ignored (" .. S_ADDON_NAME .. " AddOn)."
 local S_TEXT_OPTIONS	= "Ignore Filter"
 local S_TEXT_DURATION	= "Default Ignore Time"
-local S_BAN_SPECIAL	= "Auto-Block players\nwith special characters\nin their names"
+local S_TEXT_AUTO		= "Notify ignored people\nwho whisper you (once)"
+local S_TEXT_SPECIAL	= "Auto-Block players\nwith special characters\nin their names"
 local S_BAN_WHISPER	= "Whispers"
-local S_BAN_PARTY	= "Party Chat"
+local S_BAN_PARTY	= "Party / Raid"
 local S_BAN_GUILD	= "Guild Chat"
+local S_BAN_OFFICER	= "Officer Chat"
 local S_BAN_SAY		= "Say"
 local S_BAN_YELL	= "Yell"
+local S_BAN_BG		= "Battleground"
 local S_BAN_PUBLIC	= "Public Channels"
 local S_BAN_EMOTE	= "Emotes"
 local S_BAN_TRADE	= "Trade Requests"
 local S_BAN_INVITE	= "Invitations"
+local S_BAN_DUEL	= "Duels"
 
-local T_FOREVER		= 1
-local T_MONTH		= 2
-local T_WEEK		= 3
-local T_DAY			= 4
-local T_HOUR		= 5
-local T_RELOG		= 6
+local T_RELOG		= 1
+local T_HOUR		= 2
+local T_DAY			= 3
+local T_WEEK		= 4
+local T_MONTH		= 5
+local T_FOREVER		= 6
+local T_AUTOBLOCK	= 7
 
-local TS_FOREVER	= -1
-local TS_RELOG		= -2
+local TI_FOREVER	= 1e30 -- lol
+local TI_RELOG		= -1
+local TI_AUTOBLOCK	= 1e31
 
-local T_Duration = {
-	"Forever",
-	"Month",
-	"Week",
-	"Day",
-	"Hour",
+local B_NAME		= 1
+local B_DURATION	= 2
+local B_NOTIFIED	= 3
+
+local T_Time_Text = {
 	"Until Relog",
+	"Hour",
+	"Day",
+	"Week",
+	"Month",
+	"Forever",
+	"Auto-Ignored",
 }
 local T_Time = {
-	TS_FOREVER,
-	60 * 60 * 24 * 30,
-	60 * 60 * 24 * 7,
-	60 * 60 * 24,
+	TI_RELOG,
 	60 * 60,
-	TS_RELOG
+	60 * 60 * 24,
+	60 * 60 * 24 * 7,
+	60 * 60 * 24 * 30,
+	TI_FOREVER,
+	TI_AUTOBLOCK,
 }
+
+local T_Time_TextOpt = {
+	T_Time_Text[1],
+	T_Time_Text[2],
+	T_Time_Text[3],
+	T_Time_Text[4],
+	T_Time_Text[5],
+	T_Time_Text[6],
+}
+
+------------- Filter
+
+
+SI_Filter = {}
+
+SI_AddFilter = function(filter)
+	table.insert(SI_Filter, filter)
+end
+SI_DelFilter = function(filter)
+	table.remove(SI_Filter, filter)
+end
+
+SI_IsPlayerIgnored = function(name)
+
+	for _, filter in SI_Filter do
+		if filter(name) then
+			return true
+		end
+	end
+
+	return false
+end
+
 
 ------------- Helper
 
@@ -50,72 +94,31 @@ p = function(msg)
 	DEFAULT_CHAT_FRAME:AddMessage("SI "..msg)
 end
 ]]
-local GetMessageInfo = function(msg)
-
-	local found, chan, name, name2
-
-	-- Channel
-	found, _, chan, name = string.find(msg, "^%[([^%]]+)%].*|Hplayer:([^|]+)|h")
-	if found and chan and name then
-		return name, chan
-	end
-
-	-- Say, Yell, Whisper
-	found, _, name, name2, chan = string.find(msg, "^|Hplayer:([^|]+)|h%[([^%]]+)%]|h ([^:]+):")
-	if found and name and name2 and chan then
-		return name, chan
-	end
-
-	-- Emote
-	found, _, name = string.find(msg, "^([^ ]+) ")
-	if found and name then
-		return name, "emote"
-	end
-
-	return nil
-end
-
-local IsChannelBanned = function(chan)
-	local g = SI_Global
-	--p("CHANNEL "..chan)
-	if chan == "whispers"	then return g.BanOptWhisper end
-	if chan == "Party"		then return g.BanOptParty end
-	if chan == "Guild"		then return g.BanOptGuild end
-	if chan == "says"		then return g.BanOptSay end
-	if chan == "yells"		then return g.BanOptYell end
-	if chan == "emote"		then return g.BanOptEmote end
-	return g.BanOptPublic
-end
-
-local IsMessageIgnored = function(msg)
-	local name, chan = GetMessageInfo(msg)
-	if name and SI_IsPlayerIgnored(name) and IsChannelBanned(chan) then
-		return true
-	else
-		return false
-	end
+local IsTimeSpecial = function(t)
+	return t == TI_FOREVER or t == TI_RELOG or t == TI_AUTOBLOCK
 end
 
 local CalcBanTime = function()
 	local t = T_Time[SI_Global.BanDuration]
-	if t < 0 then
+	if IsTimeSpecial(t) then
 		return t
 	else
 		return time() + t
 	end
 end
 local IsBanTimeOver = function(t)
-	if t < 0 then
+	if IsTimeSpecial(t) then
 		return false
 	else
 		return time() > t
 	end
 end
-local UnbanRelog = function()
+local CleanUpRelog = function()
 	local unbanNames = {}
 	for _, banned in SI_Global.BannedPlayers do
-		if banned[2] == TS_RELOG then
-			table.insert(unbanNames, banned[1])
+		local d = banned[B_DURATION]
+		if d == TI_RELOG or d == TI_AUTOBLOCK then
+			table.insert(unbanNames, banned[B_NAME])
 		end
 	end
 
@@ -126,8 +129,8 @@ end
 local CheckBanTimes = function()
 	local unbanNames = {}
 	for _, banned in SI_Global.BannedPlayers do
-		if IsBanTimeOver(banned[2]) then
-			table.insert(unbanNames, banned[1])
+		if IsBanTimeOver(banned[B_DURATION]) then
+			table.insert(unbanNames, banned[B_NAME])
 		end
 	end
 
@@ -141,10 +144,12 @@ local FormatTimeNoStyle = function(t)
 		if n == 1 then return "" else return "s" end
 	end
 
-	if t == TS_FOREVER then
-		return T_Duration[T_FOREVER], "ff00ff"
-	elseif t == TS_RELOG then
-		return T_Duration[T_RELOG], "00ff00"
+	if t == TI_FOREVER then
+		return T_Time_Text[T_FOREVER], "ff00ff"
+	elseif t == TI_RELOG then
+		return T_Time_Text[T_RELOG], "00ff00"
+	elseif t == TI_AUTOBLOCK then
+		return T_Time_Text[T_AUTOBLOCK], "ffffff"
 	else
 		local tt = t - time()
 		if tt < 0 then
@@ -186,7 +191,7 @@ end
 
 local FindBannedPlayer = function(name)
 	for index, banned in SI_Global.BannedPlayers do
-		if banned[1] == name then
+		if banned[B_NAME] == name then
 			return index
 		end
 	end
@@ -194,32 +199,40 @@ local FindBannedPlayer = function(name)
 	return nil
 end
 
-------------- Global
-
-SI_IsPlayerIgnored = function(name)
-
-	if FindBannedPlayer(name) then
-		return true
-	end
-
-	name = string.lower(name)
-
-	for _, test in SI_Global.BannedParts do
-		if string.find(name, test) then
-			return true
+local SortBannedPlayersByTime = function()
+	table.sort(SI_Global.BannedPlayers, function(a, b)
+		local at = a[B_DURATION]
+		local bt = b[B_DURATION]
+		if at == bt then
+			return a[B_NAME] < b[B_NAME]
+		else
+			return at < bt
 		end
-	end
+	end)
+end
 
-	if SI_Global.BanSpecial then
-		if string.find(name, "[^a-z]") then
-			return true
-		end
-	end
+local IsChannelBanned = function(c)
+	local g = SI_Global
+
+	if c == "WHISPER"		then return g.BanOptWhisper end
+	if(c == "PARTY" or c == "RAID" or c == "RAID_LEADER" or c == "RAID_WARNING")
+							then return g.BanOptParty end
+	if c == "GUILD"			then return g.BanOptGuild end
+	if c == "OFFICER"		then return g.BanOptOfficer end
+	if c == "SAY"			then return g.BanOptSay end
+	if c == "YELL"			then return g.BanOptYell end
+	if(c == "BATTLEGROUND" or c == "BATTLEGROUND_LEADER")
+							then return g.BanOptBg end
+	if c == "CHANNEL"		then return g.BanOptPublic end
+	if(c == "EMOTE" or c == "TEXT_EMOTE")
+							then return g.BanOptEmote end
 
 	return false
 end
 
+
 ------------- Overrides
+
 
 local AddIgnore_Old				= nil
 local AddIgnore_New				= nil
@@ -239,15 +252,23 @@ local TradeFrame_OnEvent_Old	= nil
 local TradeFrame_OnEvent_New	= nil
 local StaticPopup_Show_Old		= nil
 local StaticPopup_Show_New		= nil
+local ChatFrame_OnEvent_Old		= nil
+local ChatFrame_OnEvent_New		= nil
 
 AddIgnore_New = function(name)
 
 	name = FixPlayerName(name)
+	local index = FindBannedPlayer(name)
+	local banTime = CalcBanTime()
 
-	if not FindBannedPlayer(name) then
-		table.insert(SI_Global.BannedPlayers, {name, CalcBanTime()})
-		IgnoreList_Update()
+	if index then
+		SI_Global.BannedPlayers[index][B_DURATION] = banTime
+	else
+		table.insert(SI_Global.BannedPlayers, {name, banTime, false})
 	end
+
+	SortBannedPlayersByTime()
+	IgnoreList_Update()
 end
 
 AddOrDelIgnore_New = function(name)
@@ -274,7 +295,7 @@ end
 GetIgnoreName_New = function(index)
 	local banned = SI_Global.BannedPlayers[index]
 	if banned then
-		return FormatTime(banned[2]) .. banned[1]
+		return FormatTime(banned[B_DURATION]) .. banned[B_NAME]
 	else
 		return UNKNOWN
 	end
@@ -306,6 +327,14 @@ local StaticPopup_Show_New = function(type, a1, a2, a3)
 			end
 		end
 	end
+	if SI_Global.BanOptDuel then
+		if type == "DUEL_REQUESTED" then
+			if SI_IsPlayerIgnored(a1) then
+				CancelDuel()
+				return
+			end
+		end
+	end
 
 	StaticPopup_Show_Old(type, a1, a2, a3)
 end
@@ -323,31 +352,24 @@ TradeFrame_OnEvent_New = function()
 	TradeFrame_OnEvent_Old()
 end
 
-------------- Main Code
-
-local HookChatFrame = function(frameName)
-
-	local frame = getglobal(frameName)
-	if not frame then return end
-
-	local originalAddMessage = frame.AddMessage
-	if not originalAddMessage then return end
-
-	frame.AddMessage = function(self, msg, ...)
-		--originalAddMessage(self, string.gsub(msg, "|", "||"))
-		if not IsMessageIgnored(msg) then
-			originalAddMessage(self, msg, unpack(arg))
+ChatFrame_OnEvent_New = function(event)
+	if strsub(event, 1, 8) == "CHAT_MSG" then
+		local type = strsub(event, 10)
+		if type == "IGNORED" then
+			return
+		end
+		if IsChannelBanned(type) and SI_IsPlayerIgnored(arg2) then
+			return
 		end
 	end
+
+	ChatFrame_OnEvent_Old(event)
 end
 
+
+------------- Main Code
+
 local HookFunctions = function()
-
-	StaticPopup_Show_Old	= StaticPopup_Show
-	StaticPopup_Show		= StaticPopup_Show_New
-
-	TradeFrame_OnEvent_Old	= TradeFrame_OnEvent
-	TradeFrame_OnEvent		= TradeFrame_OnEvent_New
 
 	AddIgnore_Old			= AddIgnore
 	AddIgnore				= AddIgnore_New
@@ -370,9 +392,38 @@ local HookFunctions = function()
 	SetSelectedIgnore_Old	= SetSelectedIgnore
 	SetSelectedIgnore		= SetSelectedIgnore_New
 
-	for i = 1, 7 do
-		HookChatFrame("ChatFrame" .. i)
-	end
+	StaticPopup_Show_Old	= StaticPopup_Show
+	StaticPopup_Show		= StaticPopup_Show_New
+
+	TradeFrame_OnEvent_Old	= TradeFrame_OnEvent
+	TradeFrame_OnEvent		= TradeFrame_OnEvent_New
+
+	ChatFrame_OnEvent_Old	= ChatFrame_OnEvent
+	ChatFrame_OnEvent		= ChatFrame_OnEvent_New
+end
+
+local ApplyFilters = function()
+
+	SI_AddFilter(function(name)
+		CheckBanTimes()
+		if FindBannedPlayer(name) then
+			return true
+		end
+	end)
+	SI_AddFilter(function(name)
+		for _, test in SI_Global.BannedParts do
+			if string.find(string.lower(name), test) then
+				return true
+			end
+		end
+	end)
+	SI_AddFilter(function(name)
+		if SI_Global.BanSpecial then
+			if string.find(name, "[^a-zA-Z]") then
+				return true
+			end
+		end
+	end)
 end
 
 local ReplaceOldIgnores = function()
@@ -393,8 +444,8 @@ end
 local CreateFrames = function()
 
 	local f = CreateFrame("Frame", "SI_OptionsFrame", IgnoreListFrame)
-	f:SetHeight(300)
-	f:SetWidth(185)
+	-- Height set at function end
+	f:SetWidth(190)
 	f:SetBackdrop({
 		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background", tile = true, tileSize = 32,
 		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
@@ -425,10 +476,15 @@ local CreateFrames = function()
 		ct:SetPoint("LEFT", c, "RIGHT", 0, 0)
 		ct:SetFont("Fonts\\FRIZQT__.TTF", 11)
 		ct:SetText(desc)
+
+		return c, ct
 	end
 
-	pad = pad - 25
-	createOpt(0, "BanSpecial", S_BAN_SPECIAL, pad)
+	--pad = pad - 25
+	--createOpt(0, "AutoResponse", S_TEXT_AUTO, pad)
+
+	pad = pad - 35
+	createOpt(0, "BanSpecial", S_TEXT_SPECIAL, pad)
 
 	pad = pad - 35
 	local ti = f:CreateFontString(nil, "OVERLAY", f)
@@ -441,12 +497,15 @@ local CreateFrames = function()
 		{"BanOptWhisper",	S_BAN_WHISPER,	15},
 		{"BanOptParty",		S_BAN_PARTY,	15},
 		{"BanOptGuild",		S_BAN_GUILD,	15},
+		{"BanOptOfficer",	S_BAN_OFFICER,	15},
 		{"BanOptSay",		S_BAN_SAY,		15},
 		{"BanOptYell",		S_BAN_YELL,		15},
+		{"BanOptBg",		S_BAN_BG,		15},
 		{"BanOptPublic",	S_BAN_PUBLIC,	15},
 		{"BanOptEmote",		S_BAN_EMOTE,	15},
 		{"BanOptTrade",		S_BAN_TRADE,	15},
-		{"BanOptInvite",	S_BAN_INVITE,	15}
+		{"BanOptInvite",	S_BAN_INVITE,	15},
+		{"BanOptDuel",		S_BAN_DUEL,		15}
 	}
 
 	for i = 1, table.getn(options) do
@@ -457,7 +516,7 @@ local CreateFrames = function()
 		createOpt(i, optVar, optDesc, pad)
 	end
 
-	pad = pad - 30
+	pad = pad - 25
 	local dt = f:CreateFontString(nil, "OVERLAY", f)
 	dt:SetPoint("TOP", f, "TOP", 0, pad)
 	dt:SetFont("Fonts\\FRIZQT__.TTF", 11)
@@ -471,8 +530,8 @@ local CreateFrames = function()
 	UIDropDownMenu_JustifyText("LEFT", dd)
 	UIDropDownMenu_Initialize(dd, function()
 		local info = {}
-		for i = 1, table.getn(T_Time) do
-			info.text = T_Duration[i]
+		for i = 1, table.getn(T_Time_TextOpt) do
+			info.text = T_Time_TextOpt[i]
 			info.value = i
 			info.func = function()
 				UIDropDownMenu_SetSelectedID(dd, this:GetID())
@@ -496,6 +555,8 @@ local CreateFrames = function()
 			f:Show()
 		end
 	end)
+
+	f:SetHeight(40 + (- pad))
 end
 
 local MainFrame = CreateFrame("frame")
@@ -511,26 +572,32 @@ MainFrame:SetScript("OnEvent", function()
 					BannedSelected	= 1,
 					BannedParts		= {},
 
+					AutoResponse	= true,
 					BanSpecial		= false,
 					BanDuration		= T_FOREVER,
 
 					BanOptWhisper	= true,
 					BanOptParty		= false,
 					BanOptGuild		= false,
+					BanOptOfficer	= false,
 					BanOptSay		= true,
 					BanOptYell		= true,
+					BanOptBg		= true,
 					BanOptPublic	= true,
 					BanOptEmote		= true,
 					BanOptTrade		= true,
-					BanOptInvite	= true
+					BanOptInvite	= true,
+					BanOptDuel		= true
 				}
 			end
 
 			HookFunctions()
 			CreateFrames()
 
-			UnbanRelog()
+			CleanUpRelog()
 			CheckBanTimes()
+
+			ApplyFilters()
 
 			DEFAULT_CHAT_FRAME:AddMessage(S_ADDON_NAME .. " loaded.")
 		end

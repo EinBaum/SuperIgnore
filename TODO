@@ -1,0 +1,14 @@
+TODO Features:
+	- Whisper ignore-notification
+	- Ignored chat log
+	- Set time individually
+	- Auto-Block name-parts
+	- Auto-Block by chat message
+
+Fix Bugs:
+
+
+
+Known problems:
+	- Can't remove chat bubbles
+	- "Duel cancelled" / "Trade cancelled" message is displayed
