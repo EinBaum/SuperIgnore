@@ -412,6 +412,13 @@ SI_ChatFrame_OnEvent_New = function(event)
 		end
 
 		if arg1 and type == "SYSTEM" then
+			local found, _, name = string.find(arg1, "([^ ]+) is no longer being ignored.")
+			if found and name then
+				return
+			end
+		end
+
+		if arg1 and type == "SYSTEM" then
 			local found, _, name = string.find(arg1, "([^ ]+) has invited you to join a group.")
 			if found and name then
 				if SI_IsPlayerIgnored(name) then
@@ -531,7 +538,7 @@ SI_CreateFrames = function()
 
 	local f = CreateFrame("Frame", "SI_OptionsFrame", IgnoreListFrame)
 	-- Height set at function end
-	f:SetWidth(180)
+	f:SetWidth(185)
 	f:SetBackdrop({
 		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background", tile = true, tileSize = 32,
 		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
