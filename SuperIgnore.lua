@@ -138,7 +138,7 @@ SI_CleanUpRelog = function()
 	end
 
 	for _, name in unbanNames do
-		DelIgnore(name, true)
+		SI_DelIgnore_New(name, true)
 	end
 end
 SI_CheckBanTimes = function()
@@ -150,10 +150,10 @@ SI_CheckBanTimes = function()
 	end
 
 	for _, name in unbanNames do
-		SI_DelIgnore(name)
+		SI_DelIgnore_New(name)
 	end
 end
-SI_SI_FormatTimeNoStyle = function(t)
+SI_FormatTimeNoStyle = function(t)
 
 	local _s = function(n)
 		if n == 1 then return "" else return "s" end
@@ -189,7 +189,7 @@ SI_SI_FormatTimeNoStyle = function(t)
 	end
 end
 SI_FormatTime = function(t)
-	local str, color = SI_SI_FormatTimeNoStyle(t)
+	local str, color = SI_FormatTimeNoStyle(t)
 	return "|cff" .. color .. "[" .. str .. "]|r "
 end
 
@@ -250,7 +250,7 @@ SI_CheckInteractRules = function(name)
 		SI_Print(string.format(S_CHAT_BLOCKED, name))
 		return true
 	elseif SI_Global.WhisperUnignore then
-		SI_DelIgnore(name)
+		SI_DelIgnore_New(name)
 		return false
 	else
 		return false
@@ -314,16 +314,16 @@ SI_AddIgnore_New = function(name, quiet, banTime)
 	IgnoreList_Update()
 
 	if not quiet then
-		SI_Print(string.format(S_CHAT_IGNORED, name, SI_SI_FormatTimeNoStyle(banTime)))
+		SI_Print(string.format(S_CHAT_IGNORED, name, SI_FormatTimeNoStyle(banTime)))
 	end
 end
 
 SI_AddOrDelIgnore_New = function(name)
 	local index = SI_FindBannedPlayer(name)
 	if index then
-		DelIgnore(name)
+		SI_DelIgnore_New(name)
 	else
-		AddIgnore(name)
+		SI_AddIgnore_New(name)
 	end
 end
 
@@ -688,15 +688,14 @@ SI_MainFrame:SetScript("OnEvent", function()
 
 			SI_HookFunctions()
 			SI_CreateFrames()
-
-			SI_CleanUpRelog()
-			SI_CheckBanTimes()
-
 			SI_ApplyFilters()
 
 			local info = ChatTypeInfo["COMBAT_HONOR_GAIN"]
 			DEFAULT_CHAT_FRAME:AddMessage(string.format("%s %s loaded.", S_ADDON_NAME, S_ADDON_VERSION),
 				info.r, info.g, info.b, info.id);
+
+			SI_CleanUpRelog()
+			SI_CheckBanTimes()
 		end
 	elseif event == "IGNORELIST_UPDATE" then
 		SI_ReplaceOldIgnores()
