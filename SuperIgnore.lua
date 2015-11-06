@@ -2,7 +2,7 @@
 local S_ADDON_NAME				= "SuperIgnore"
 local S_ADDON_DIR				= "superignore"
 local S_ADDON_VERSION			= "1.0"
-local S_AUTO_RESPONSE			= "Ignored. (" .. S_ADDON_NAME .. " AddOn)"
+local S_AUTO_RESPONSE			= "~Ignored~ (" .. S_ADDON_NAME .. " AddOn)"
 local S_TEXT_OPTIONS			= "Ignore Filter"
 local S_TEXT_EXTRA				= "Extra Features"
 local S_TEXT_DURATION			= "Default Ignore Time"
@@ -418,6 +418,12 @@ SI_ChatFrame_OnEvent_New = function(event)
 					SI_CheckAutoResponse(name)
 					return
 				end
+			end
+		end
+
+		if arg1 and arg2 and type == "WHISPER_INFORM" then
+			if arg1 == S_AUTO_RESPONSE then
+				return
 			end
 		end
 
