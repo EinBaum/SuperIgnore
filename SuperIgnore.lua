@@ -1,7 +1,7 @@
 
 local S_ADDON_NAME				= "SuperIgnore"
 local S_ADDON_DIR				= "superignore"
-local S_ADDON_VERSION			= ""
+local S_ADDON_VERSION			= "1.0"
 local S_AUTO_RESPONSE			= "Ignored. (" .. S_ADDON_NAME .. " AddOn)"
 local S_TEXT_OPTIONS			= "Ignore Filter"
 local S_TEXT_EXTRA				= "Extra Features"
@@ -564,7 +564,7 @@ SI_CreateFrames = function()
 	end
 
 	pad = pad - 15
-	createHeader(S_ADDON_NAME, 12)
+	createHeader(string.format("%s %s", S_ADDON_NAME, S_ADDON_VERSION), 12)
 	pad = pad - 25
 
 	createOpt(0, "WhisperBlock", S_TEXT_WHISPER_BLOCK, pad)
@@ -659,8 +659,8 @@ SI_MainFrame:SetScript("OnEvent", function()
 					BannedSelected	= 1,
 					BannedParts		= {},
 
-					WhisperUnignore	= true,
 					WhisperBlock	= false,
+					WhisperUnignore	= true,
 					AutoResponse	= false,
 					BanSpecial		= false,
 					BanDuration		= T_FOREVER,
@@ -689,7 +689,8 @@ SI_MainFrame:SetScript("OnEvent", function()
 			SI_ApplyFilters()
 
 			local info = ChatTypeInfo["COMBAT_HONOR_GAIN"]
-			DEFAULT_CHAT_FRAME:AddMessage(string.format("%s loaded.", S_ADDON_NAME), info.r, info.g, info.b, info.id);
+			DEFAULT_CHAT_FRAME:AddMessage(string.format("%s %s loaded.", S_ADDON_NAME, S_ADDON_VERSION),
+				info.r, info.g, info.b, info.id);
 		end
 	elseif event == "IGNORELIST_UPDATE" then
 		SI_ReplaceOldIgnores()
