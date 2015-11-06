@@ -1,12 +1,13 @@
 TODO Features:
 	- Ignored chat log
+	- "Ignore" option when right clicking players
 	- Set time individually
 	- Auto-Block name-parts
 	- Auto-Block by chat message
 
 Fix Bugs:
-	- Auto-Unignore / Auto-Block doesn't work for trades, invites and duels
 	- Hide ignore whisper-notification
+	- Auto-Unignore doesn't work for trades, invites and duels
 
 Performance Issues:
 	- Optimize CheckBanTimes() calling
