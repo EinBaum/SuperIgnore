@@ -1,13 +1,16 @@
 TODO Features:
-	- Whisper ignore-notification
 	- Ignored chat log
 	- Set time individually
 	- Auto-Block name-parts
 	- Auto-Block by chat message
 
 Fix Bugs:
+	- Auto-Unignore / Auto-Block doesn't work for trades, invites and duels
+	- Hide ignore whisper-notification
 
-
+Performance Issues:
+	- Optimize CheckBanTimes() calling
+	- Optimize whisper-back ignore notification in ChatFrame_OnEvent
 
 Known problems:
 	- Can't remove chat bubbles

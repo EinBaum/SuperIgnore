@@ -1,11 +1,17 @@
 
-local S_ADDON_NAME	= "SuperIgnore"
-local S_ADDON_DIR	= "superignore"
-local S_AUTO_RESPONSE	= "Ignored (" .. S_ADDON_NAME .. " AddOn)."
-local S_TEXT_OPTIONS	= "Ignore Filter"
-local S_TEXT_DURATION	= "Default Ignore Time"
-local S_TEXT_AUTO		= "Notify ignored people\nwho whisper you (once)"
-local S_TEXT_SPECIAL	= "Auto-Block players\nwith special characters\nin their names"
+local S_ADDON_NAME				= "SuperIgnore"
+local S_ADDON_DIR				= "superignore"
+local S_AUTO_RESPONSE			= "Ignored. (" .. S_ADDON_NAME .. " AddOn)"
+local S_TEXT_OPTIONS			= "Ignore Filter"
+local S_TEXT_DURATION			= "Default Ignore Time"
+local S_TEXT_WHISPER_BLOCK		= "Do not let me whisper\nignored players"
+local S_TEXT_WHISPER_UNIGNORE	= "Unignore players if I\nwhisper them"
+local S_TEXT_AUTO				= "Notify ignored people\nwho whisper me (once)"
+local S_TEXT_SPECIAL			= "Auto-Block players\nwith special characters\nin their names"
+local S_CHAT_IGNORED			= "%s is now being ignored. Duration: %s."
+local S_CHAT_UNIGNORED			= "%s is no longer being ignored."
+local S_CHAT_BLOCKED			= "Your message wasn't sent because are ignoring %s."
+local S_CHAT_SELF				= "You can't ignore yourself."
 local S_BAN_WHISPER	= "Whispers"
 local S_BAN_PARTY	= "Party / Raid"
 local S_BAN_GUILD	= "Guild Chat"
@@ -16,7 +22,7 @@ local S_BAN_BG		= "Battleground"
 local S_BAN_PUBLIC	= "Public Channels"
 local S_BAN_EMOTE	= "Emotes"
 local S_BAN_TRADE	= "Trade Requests"
-local S_BAN_INVITE	= "Invitations"
+local S_BAN_INVITE	= "Invites"
 local S_BAN_DUEL	= "Duels"
 
 local T_RELOG		= 1
@@ -76,9 +82,17 @@ SI_DelFilter = function(filter)
 end
 
 SI_IsPlayerIgnored = function(name)
+	
+	if name == UnitName("player") then
+		return false
+	end
 
 	for _, filter in SI_Filter do
 		if filter(name) then
+			local index = FindBannedPlayer(name)
+			if not index then
+				AddIgnore(name, true, TI_AUTOBLOCK)
+			end
 			return true
 		end
 	end
@@ -94,6 +108,11 @@ p = function(msg)
 	DEFAULT_CHAT_FRAME:AddMessage("SI "..msg)
 end
 ]]
+local Print = function(msg)
+	local info = ChatTypeInfo["SYSTEM"]
+	DEFAULT_CHAT_FRAME:AddMessage(msg, info.r, info.g, info.b, info.id);
+end
+
 local IsTimeSpecial = function(t)
 	return t == TI_FOREVER or t == TI_RELOG or t == TI_AUTOBLOCK
 end
@@ -123,7 +142,7 @@ local CleanUpRelog = function()
 	end
 
 	for _, name in unbanNames do
-		DelIgnore(name)
+		DelIgnore(name, true)
 	end
 end
 local CheckBanTimes = function()
@@ -189,7 +208,7 @@ local FixBannedSelected = function()
 	 end
 end
 
-local FindBannedPlayer = function(name)
+FindBannedPlayer = function(name)
 	for index, banned in SI_Global.BannedPlayers do
 		if banned[B_NAME] == name then
 			return index
@@ -230,6 +249,17 @@ local IsChannelBanned = function(c)
 	return false
 end
 
+local CheckInteractRules = function(name)
+	if SI_Global.WhisperBlock then
+		Print(string.format(S_CHAT_BLOCKED, name))
+		return true
+	elseif SI_Global.WhisperUnignore then
+		DelIgnore(name)
+		return false
+	else
+		return false
+	end
+end
 
 ------------- Overrides
 
@@ -254,13 +284,22 @@ local StaticPopup_Show_Old		= nil
 local StaticPopup_Show_New		= nil
 local ChatFrame_OnEvent_Old		= nil
 local ChatFrame_OnEvent_New		= nil
+local SendChatMessage_Old		= nil
+local SendChatMessage_New		= nil
 
-AddIgnore_New = function(name)
+AddIgnore_New = function(name, quiet, banTime)
 
 	name = FixPlayerName(name)
-	local index = FindBannedPlayer(name)
-	local banTime = CalcBanTime()
+	if name == UnitName("player") then
+		Print(S_CHAT_SELF)
+		return
+	end
+	
+	if not banTime then
+		banTime = CalcBanTime()
+	end
 
+	local index = FindBannedPlayer(name)
 	if index then
 		SI_Global.BannedPlayers[index][B_DURATION] = banTime
 	else
@@ -269,17 +308,22 @@ AddIgnore_New = function(name)
 
 	SortBannedPlayersByTime()
 	IgnoreList_Update()
+	
+	if not quiet then
+		Print(string.format(S_CHAT_IGNORED, name, FormatTimeNoStyle(banTime)))
+	end
 end
 
 AddOrDelIgnore_New = function(name)
-	local oldLen = GetNumIgnores()
-	DelIgnore(name)
-	if oldLen == GetNumIgnores() then
+	local index = FindBannedPlayer(name)
+	if index then
+		DelIgnore(name)
+	else
 		AddIgnore(name)
 	end
 end
 
-DelIgnore_New = function(name)
+DelIgnore_New = function(name, quiet)
 
 	name = string.gsub(name, "^|cff([^|]+)|r ", "")
 	name = FixPlayerName(name)
@@ -289,6 +333,10 @@ DelIgnore_New = function(name)
 		 table.remove(SI_Global.BannedPlayers, index)
 		 FixBannedSelected()
 		 IgnoreList_Update()
+		 
+		 if not quiet then
+			Print(string.format(S_CHAT_UNIGNORED, name))
+		end
 	end
 end
 
@@ -359,11 +407,30 @@ ChatFrame_OnEvent_New = function(event)
 			return
 		end
 		if IsChannelBanned(type) and SI_IsPlayerIgnored(arg2) then
+			if SI_Global.AutoResponse and type == "WHISPER" then
+				local index = FindBannedPlayer(arg2)
+				if index then
+					if not SI_Global.BannedPlayers[index][B_NOTIFIED] then
+						SI_Global.BannedPlayers[index][B_NOTIFIED] = true
+						SendChatMessage_Old(S_AUTO_RESPONSE, "WHISPER", nil, arg2)
+					end
+				end
+			end
 			return
 		end
 	end
 
 	ChatFrame_OnEvent_Old(event)
+end
+
+SendChatMessage_New = function(msg, chatType, lang, channel)
+	local name = channel
+	if chatType == "WHISPER" and SI_IsPlayerIgnored(channel) then
+		if CheckInteractRules(channel) then
+			return
+		end
+	end
+	SendChatMessage_Old(msg, chatType, lang, channel)
 end
 
 
@@ -400,6 +467,9 @@ local HookFunctions = function()
 
 	ChatFrame_OnEvent_Old	= ChatFrame_OnEvent
 	ChatFrame_OnEvent		= ChatFrame_OnEvent_New
+
+	SendChatMessage_Old		= SendChatMessage
+	SendChatMessage			= SendChatMessage_New
 end
 
 local ApplyFilters = function()
@@ -435,7 +505,7 @@ local ReplaceOldIgnores = function()
 
 	for _, name in oldNames do
 		DelIgnore_Old(name)
-		AddIgnore_New(name)
+		AddIgnore_New(name, true)
 	end
 end
 
@@ -445,13 +515,13 @@ local CreateFrames = function()
 
 	local f = CreateFrame("Frame", "SI_OptionsFrame", IgnoreListFrame)
 	-- Height set at function end
-	f:SetWidth(190)
+	f:SetWidth(180)
 	f:SetBackdrop({
 		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background", tile = true, tileSize = 32,
 		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
 		insets = {left = 11, right = 12, top = 12, bottom = 11},
 	})
-	f:SetPoint("TOPLEFT", IgnoreListFrame, "TOPRIGHT", -34, -35)
+	f:SetPoint("TOPLEFT", IgnoreListFrame, "TOPRIGHT", -34, -7)
 	f:Hide()
 
 	local pad = -15
@@ -479,9 +549,15 @@ local CreateFrames = function()
 
 		return c, ct
 	end
+	
+	pad = pad - 25
+	createOpt(0, "WhisperBlock", S_TEXT_WHISPER_BLOCK, pad)
+	
+	pad = pad - 35
+	createOpt(0, "WhisperUnignore", S_TEXT_WHISPER_UNIGNORE, pad)
 
-	--pad = pad - 25
-	--createOpt(0, "AutoResponse", S_TEXT_AUTO, pad)
+	pad = pad - 35
+	createOpt(0, "AutoResponse", S_TEXT_AUTO, pad)
 
 	pad = pad - 35
 	createOpt(0, "BanSpecial", S_TEXT_SPECIAL, pad)
@@ -572,7 +648,9 @@ MainFrame:SetScript("OnEvent", function()
 					BannedSelected	= 1,
 					BannedParts		= {},
 
-					AutoResponse	= true,
+					WhisperUnignore	= true,
+					WhisperBlock	= false,
+					AutoResponse	= false,
 					BanSpecial		= false,
 					BanDuration		= T_FOREVER,
 
