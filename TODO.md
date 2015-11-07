@@ -6,6 +6,7 @@
 - Auto-Block by chat message
 
 ### Fix Bugs:
+- Hide guild invite chat message
 - WhisperUnignore doesn't work for trades, invites and duels
 - WhisperBlock and WhisperUnignore should be mutually exclusive in GUI
 
