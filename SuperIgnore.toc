@@ -2,7 +2,7 @@
 ## Title: SuperIgnore
 ## Notes: Unlimited ignore list with many extra features
 ## Author: https://github.com/EinBaum
-## Version: 1.1
+## Version: 1.1.1
 ## SavedVariables: SI_Global
 
 SuperIgnore.lua

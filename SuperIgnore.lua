@@ -1,7 +1,7 @@
 
 local S_ADDON_NAME				= "SuperIgnore"
 local S_ADDON_DIR				= "superignore"
-local S_ADDON_VERSION			= "1.1"
+local S_ADDON_VERSION			= "1.1.1"
 local S_AUTO_RESPONSE			= "~Ignored~ (" .. S_ADDON_NAME .. " AddOn)"
 local S_TEXT_OPTIONS			= "Ignore Filter"
 local S_TEXT_EXTRA				= "Extra Features"
@@ -195,6 +195,15 @@ end
 
 SI_FixPlayerName = function(name)
 	return string.gsub(name, "^%l", string.upper)
+end
+
+SI_StringFindPattern = function(s, r)
+	-- %s
+	-- ([^ ]+)
+	-- (.*)
+	r = string.gsub(r, "%%s", "%(%[%^ %]%+%)", 1)
+	r = string.gsub(r, "%%s", "%(%.%*%)")
+	return string.find(s, r)
 end
 
 SI_FixBannedSelected = function()
@@ -418,18 +427,19 @@ SI_ChatFrame_OnEvent_New = function(event)
 		end
 
 		if arg1 and type == "SYSTEM" then
-			local found, _, name = string.find(arg1, "([^ ]+) is no longer being ignored.")
+			local found, _, name = SI_StringFindPattern(arg1, ERR_IGNORE_REMOVED_S)
 			if found and name then
 				return
 			end
-		end
 
-		if arg1 and type == "SYSTEM" then
-			local found, _, name = string.find(arg1, "([^ ]+) has invited you to join a group.")
-			if found and name then
-				if SI_IsPlayerIgnored(name) then
-					return
-				end
+			found, _, name = SI_StringFindPattern(arg1, ERR_INVITED_TO_GUILD_SS)
+			if found and name and SI_IsPlayerIgnored(name) then
+				return
+			end
+
+			found, _, name = SI_StringFindPattern(arg1, ERR_INVITED_TO_GROUP_S)
+			if found and name and SI_IsPlayerIgnored(name) then
+				return
 			end
 		end
 
