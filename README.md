@@ -9,4 +9,5 @@
 
 ### Installation Notes
 - Remove "-master" from the directory name after downloading
-- This addon does not work with chat addons such as Prat
+- Works with Prat
+- Might not work with some chat AddOns (WIM shows whispers that should be hidden)
