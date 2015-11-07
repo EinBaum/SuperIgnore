@@ -1,14 +1,14 @@
 
 local S_ADDON_NAME				= "SuperIgnore"
 local S_ADDON_DIR				= "superignore"
-local S_ADDON_VERSION			= "1.0"
+local S_ADDON_VERSION			= "1.1"
 local S_AUTO_RESPONSE			= "~Ignored~ (" .. S_ADDON_NAME .. " AddOn)"
 local S_TEXT_OPTIONS			= "Ignore Filter"
 local S_TEXT_EXTRA				= "Extra Features"
 local S_TEXT_DURATION			= "Default Ignore Time"
 local S_TEXT_WHISPER_BLOCK		= "Do not let me whisper\nignored players"
 local S_TEXT_WHISPER_UNIGNORE	= "Unignore players if I\nwhisper them"
-local S_TEXT_AUTO				= "Notify ignored people\nwho whisper me (once)"
+local S_TEXT_AUTO				= "Notify ignored people\nwho interact me\n(only once)"
 local S_TEXT_SPECIAL			= "Auto-Block players\nwith special characters\nin their names"
 local S_CHAT_IGNORED			= "%s is now being ignored. Duration: %s."
 local S_CHAT_UNIGNORED			= "%s is no longer being ignored."
@@ -366,14 +366,17 @@ SI_SetSelectedIgnore_New = function(index)
 end
 
 SI_StaticPopup_Show_New = function(type, a1, a2, a3)
+	local name = a1
 	if SI_Global.BanOptInvite then
 		if type == "PARTY_INVITE" then
-			if SI_IsPlayerIgnored(a1) then
+			if SI_IsPlayerIgnored(name) then
+				SI_CheckAutoResponse(name)
 				DeclineGroup()
 				return
 			end
 		elseif type == "GUILD_INVITE" then
-			if SI_IsPlayerIgnored(a1) then
+			if SI_IsPlayerIgnored(name) then
+				SI_CheckAutoResponse(name)
 				DeclineGuild()
 				return
 			end
@@ -381,7 +384,8 @@ SI_StaticPopup_Show_New = function(type, a1, a2, a3)
 	end
 	if SI_Global.BanOptDuel then
 		if type == "DUEL_REQUESTED" then
-			if SI_IsPlayerIgnored(a1) then
+			if SI_IsPlayerIgnored(name) then
+				SI_CheckAutoResponse(name)
 				CancelDuel()
 				return
 			end
@@ -394,7 +398,9 @@ end
 SI_TradeFrame_OnEvent_New = function()
 	if SI_Global.BanOptTrade then
 		if event == "TRADE_SHOW" or event == "TRADE_UPDATE" then
-			if SI_IsPlayerIgnored(UnitName("NPC")) then
+			local name = UnitName("NPC")
+			if SI_IsPlayerIgnored(name) then
+				SI_CheckAutoResponse(name)
 				CloseTrade()
 				return
 			end
@@ -422,7 +428,6 @@ SI_ChatFrame_OnEvent_New = function(event)
 			local found, _, name = string.find(arg1, "([^ ]+) has invited you to join a group.")
 			if found and name then
 				if SI_IsPlayerIgnored(name) then
-					SI_CheckAutoResponse(name)
 					return
 				end
 			end
