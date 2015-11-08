@@ -712,9 +712,7 @@ SI_MainFrame:SetScript("OnEvent", function()
 			SI_CreateFrames()
 			SI_ApplyFilters()
 
-			local info = ChatTypeInfo["COMBAT_HONOR_GAIN"]
-			DEFAULT_CHAT_FRAME:AddMessage(string.format("%s %s loaded.", S_ADDON_NAME, S_ADDON_VERSION),
-				info.r, info.g, info.b, info.id);
+			SI_Print(string.format("%s %s loaded.", S_ADDON_NAME, S_ADDON_VERSION))
 
 			SI_CleanUpRelog()
 			SI_CheckBanTimes()
