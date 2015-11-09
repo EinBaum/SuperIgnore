@@ -1,14 +1,14 @@
 
 local S_ADDON_NAME				= "SuperIgnore"
 local S_ADDON_DIR				= "superignore"
-local S_ADDON_VERSION			= "1.1.2"
+local S_ADDON_VERSION			= "1.1.3"
 local S_AUTO_RESPONSE			= "~Ignored~ (" .. S_ADDON_NAME .. " AddOn)"
 local S_TEXT_OPTIONS			= "Ignore Filter"
 local S_TEXT_EXTRA				= "Extra Features"
 local S_TEXT_DURATION			= "Default Ignore Time"
 local S_TEXT_WHISPER_BLOCK		= "Do not let me whisper\nignored players"
 local S_TEXT_WHISPER_UNIGNORE	= "Unignore players if I\nwhisper them"
-local S_TEXT_AUTO				= "Notify ignored people\nwho interact with me\n(only once)"
+local S_TEXT_AUTO				= "Notify ignored players\nwho interact with me\n(only once)"
 local S_TEXT_SPECIAL			= "Auto-Block players\nwith special characters\nin their names"
 local S_CHAT_IGNORED			= "%s is now being ignored. Duration: %s."
 local S_CHAT_UNIGNORED			= "%s is no longer being ignored."
@@ -374,16 +374,16 @@ SI_SetSelectedIgnore_New = function(index)
 	SI_Global.BannedSelected = index
 end
 
-SI_StaticPopup_Show_New = function(type, a1, a2, a3)
-	local name = a1
+SI_StaticPopup_Show_New = function(which, text_arg1, text_arg2, data)
+	local name = text_arg1
 	if SI_Global.BanOptInvite then
-		if type == "PARTY_INVITE" then
+		if which == "PARTY_INVITE" then
 			if SI_IsPlayerIgnored(name) then
 				SI_CheckAutoResponse(name)
 				DeclineGroup()
 				return
 			end
-		elseif type == "GUILD_INVITE" then
+		elseif which == "GUILD_INVITE" then
 			if SI_IsPlayerIgnored(name) then
 				SI_CheckAutoResponse(name)
 				DeclineGuild()
@@ -392,7 +392,7 @@ SI_StaticPopup_Show_New = function(type, a1, a2, a3)
 		end
 	end
 	if SI_Global.BanOptDuel then
-		if type == "DUEL_REQUESTED" then
+		if which == "DUEL_REQUESTED" then
 			if SI_IsPlayerIgnored(name) then
 				SI_CheckAutoResponse(name)
 				CancelDuel()
@@ -401,7 +401,7 @@ SI_StaticPopup_Show_New = function(type, a1, a2, a3)
 		end
 	end
 
-	SI_StaticPopup_Show_Old(type, a1, a2, a3)
+	return SI_StaticPopup_Show_Old(which, text_arg1, text_arg2, data)
 end
 
 SI_TradeFrame_OnEvent_New = function()
