@@ -1,7 +1,7 @@
 
 local S_ADDON_NAME				= "SuperIgnore"
 local S_ADDON_DIR				= "superignore"
-local S_ADDON_VERSION			= "1.1.3"
+local S_ADDON_VERSION			= "1.1.4"
 local S_AUTO_RESPONSE			= "~Ignored~ (" .. S_ADDON_NAME .. " AddOn)"
 local S_TEXT_OPTIONS			= "Ignore Filter"
 local S_TEXT_EXTRA				= "Extra Features"
@@ -285,6 +285,49 @@ SI_CheckAutoBlock = function(name)
 	end
 end
 
+SI_IsChatIgnored = function(event, arg1, arg2)
+
+	if strsub(event, 1, 8) == "CHAT_MSG" then
+		local type = strsub(event, 10)
+		if type == "IGNORED" then
+			return true
+		end
+
+		if arg1 and type == "SYSTEM" then
+			local found, _, name = SI_StringFindPattern(arg1, ERR_IGNORE_REMOVED_S)
+			if found and name then
+				return true
+			end
+
+			found, _, name = SI_StringFindPattern(arg1, ERR_INVITED_TO_GUILD_SS)
+			if found and name and SI_IsPlayerIgnored(name) then
+				return true
+			end
+
+			found, _, name = SI_StringFindPattern(arg1, ERR_INVITED_TO_GROUP_S)
+			if found and name and SI_IsPlayerIgnored(name) then
+				return true
+			end
+		end
+
+		if arg1 and arg2 and type == "WHISPER_INFORM" then
+			if arg1 == S_AUTO_RESPONSE then
+				return true
+			end
+		end
+
+		if arg2 and SI_IsChannelBanned(type) and SI_IsPlayerIgnored(arg2) then
+			if type == "WHISPER" then
+				SI_CheckAutoResponse(arg2)
+			end
+
+			return true
+		end
+	end
+
+	return false
+end
+
 ------------- Overrides
 
 
@@ -298,6 +341,7 @@ SI_SetSelectedIgnore_Old	= nil
 SI_TradeFrame_OnEvent_Old	= nil
 SI_StaticPopup_Show_Old		= nil
 SI_ChatFrame_OnEvent_Old	= nil
+SI_WIM_ChatFrame_OnEvent_Old	= nil
 SI_SendChatMessage_Old		= nil
 
 SI_AddIgnore_New = function(name, quiet, banTime)
@@ -420,45 +464,15 @@ SI_TradeFrame_OnEvent_New = function()
 end
 
 SI_ChatFrame_OnEvent_New = function(event)
-	if strsub(event, 1, 8) == "CHAT_MSG" then
-		local type = strsub(event, 10)
-		if type == "IGNORED" then
-			return
-		end
-
-		if arg1 and type == "SYSTEM" then
-			local found, _, name = SI_StringFindPattern(arg1, ERR_IGNORE_REMOVED_S)
-			if found and name then
-				return
-			end
-
-			found, _, name = SI_StringFindPattern(arg1, ERR_INVITED_TO_GUILD_SS)
-			if found and name and SI_IsPlayerIgnored(name) then
-				return
-			end
-
-			found, _, name = SI_StringFindPattern(arg1, ERR_INVITED_TO_GROUP_S)
-			if found and name and SI_IsPlayerIgnored(name) then
-				return
-			end
-		end
-
-		if arg1 and arg2 and type == "WHISPER_INFORM" then
-			if arg1 == S_AUTO_RESPONSE then
-				return
-			end
-		end
-
-		if arg2 and SI_IsChannelBanned(type) and SI_IsPlayerIgnored(arg2) then
-			if type == "WHISPER" then
-				SI_CheckAutoResponse(arg2)
-			end
-
-			return
-		end
+	if not SI_IsChatIgnored(event, arg1, arg2) then
+		SI_ChatFrame_OnEvent_Old(event)
 	end
+end
 
-	SI_ChatFrame_OnEvent_Old(event)
+SI_WIM_ChatFrame_OnEvent_New = function(event)
+	if not SI_IsChatIgnored(event, arg1, arg2) then
+		SI_WIM_ChatFrame_OnEvent_Old(event)
+	end
 end
 
 SI_SendChatMessage_New = function(msg, chatType, lang, channel)
@@ -505,6 +519,11 @@ SI_HookFunctions = function()
 
 	SI_ChatFrame_OnEvent_Old	= ChatFrame_OnEvent
 	ChatFrame_OnEvent			= SI_ChatFrame_OnEvent_New
+
+	if WIM_ChatFrame_OnEvent then
+		SI_WIM_ChatFrame_OnEvent_Old	= WIM_ChatFrame_OnEvent
+		WIM_ChatFrame_OnEvent			= SI_WIM_ChatFrame_OnEvent_New
+	end
 
 	SI_SendChatMessage_Old		= SendChatMessage
 	SendChatMessage				= SI_SendChatMessage_New
