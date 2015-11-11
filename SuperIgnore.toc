@@ -2,8 +2,8 @@
 ## Title: SuperIgnore
 ## Notes: Unlimited ignore list with many extra features
 ## Author: https://github.com/EinBaum
-## Version: 1.1.4
+## Version: 1.1.5
 ## SavedVariables: SI_Global
-## OptionalDeps: WIM
+## OptionalDeps: WIM, FuBar_WhisperFu
 
 SuperIgnore.lua

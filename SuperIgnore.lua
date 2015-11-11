@@ -1,7 +1,7 @@
 
 local S_ADDON_NAME				= "SuperIgnore"
 local S_ADDON_DIR				= "superignore"
-local S_ADDON_VERSION			= "1.1.4"
+local S_ADDON_VERSION			= "1.1.5"
 local S_AUTO_RESPONSE			= "~Ignored~ (" .. S_ADDON_NAME .. " AddOn)"
 local S_TEXT_OPTIONS			= "Ignore Filter"
 local S_TEXT_EXTRA				= "Extra Features"
@@ -475,6 +475,12 @@ SI_WIM_ChatFrame_OnEvent_New = function(event)
 	end
 end
 
+SI_WhisperFu_OnReceiveWhisper_New = function()
+	if not SI_IsChatIgnored("CHAT_MSG_WHISPER", arg1, arg2) then
+		WhisperFu:OnReceiveWhisper_Old()
+	end
+end
+
 SI_SendChatMessage_New = function(msg, chatType, lang, channel)
 	local name = channel
 	if chatType == "WHISPER" and SI_IsPlayerIgnored(channel) then
@@ -523,6 +529,11 @@ SI_HookFunctions = function()
 	if WIM_ChatFrame_OnEvent then
 		SI_WIM_ChatFrame_OnEvent_Old	= WIM_ChatFrame_OnEvent
 		WIM_ChatFrame_OnEvent			= SI_WIM_ChatFrame_OnEvent_New
+	end
+
+	if WhisperFu then
+		WhisperFu.OnReceiveWhisper_Old	= WhisperFu.OnReceiveWhisper
+		WhisperFu.OnReceiveWhisper		= SI_WhisperFu_OnReceiveWhisper_New
 	end
 
 	SI_SendChatMessage_Old		= SendChatMessage
