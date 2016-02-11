@@ -1,35 +1,35 @@
 
-local S_ADDON_NAME				= "SuperIgnore"
-local S_ADDON_DIR				= "superignore"
-local S_ADDON_VERSION			= "1.1.6"
-local S_AUTO_RESPONSE			= "~Ignored~ (" .. S_ADDON_NAME .. " AddOn)"
-local S_TEXT_OPTIONS			= "Ignore Filter"
-local S_TEXT_EXTRA				= "Extra Features"
-local S_TEXT_DURATION			= "Default Ignore Time"
-local S_TEXT_WHISPER_BLOCK		= "Do not let me whisper\nignored players"
+local S_ADDON_NAME		= "SuperIgnore"
+local S_ADDON_DIR		= "superignore"
+local S_ADDON_VERSION		= "1.1.6"
+local S_AUTO_RESPONSE		= "~Ignored~ (" .. S_ADDON_NAME .. " AddOn)"
+local S_TEXT_OPTIONS		= "Ignore Filter"
+local S_TEXT_EXTRA		= "Extra Features"
+local S_TEXT_DURATION		= "Default Ignore Time"
+local S_TEXT_WHISPER_BLOCK	= "Do not let me whisper\nignored players"
 local S_TEXT_WHISPER_UNIGNORE	= "Unignore players if I\nwhisper them"
-local S_TEXT_AUTO				= "Notify ignored players\nwho interact with me\n(only once)"
-local S_TEXT_SPECIAL			= "Auto-Block players\nwith special characters\nin their names"
-local S_CHAT_IGNORED			= "%s is now being ignored. Duration: %s."
-local S_CHAT_UNIGNORED			= "%s is no longer being ignored."
-local S_CHAT_BLOCKED			= "Your message was not sent because are ignoring %s."
-local S_CHAT_SELF				= "You can't ignore yourself."
-local S_BAN_WHISPER	= "Whispers"
-local S_BAN_PARTY	= "Party / Raid"
-local S_BAN_GUILD	= "Guild Chat"
-local S_BAN_OFFICER	= "Officer Chat"
-local S_BAN_SAY		= "Say"
-local S_BAN_YELL	= "Yell"
-local S_BAN_BG		= "Battleground"
-local S_BAN_PUBLIC	= "Public Channels"
-local S_BAN_EMOTE	= "Emotes"
-local S_BAN_TRADE	= "Trade Requests"
-local S_BAN_INVITE	= "Invites"
-local S_BAN_DUEL	= "Duels"
+local S_TEXT_AUTO		= "Notify ignored players\nwho interact with me\n(only once)"
+local S_TEXT_SPECIAL		= "Auto-Block players\nwith special characters\nin their names"
+local S_CHAT_IGNORED		= "%s is now being ignored. Duration: %s."
+local S_CHAT_UNIGNORED		= "%s is no longer being ignored."
+local S_CHAT_BLOCKED		= "Your message was not sent because are ignoring %s."
+local S_CHAT_SELF		= "You can't ignore yourself."
+local S_BAN_WHISPER		= "Whispers"
+local S_BAN_PARTY		= "Party / Raid"
+local S_BAN_GUILD		= "Guild Chat"
+local S_BAN_OFFICER		= "Officer Chat"
+local S_BAN_SAY			= "Say"
+local S_BAN_YELL		= "Yell"
+local S_BAN_BG			= "Battleground"
+local S_BAN_PUBLIC		= "Public Channels"
+local S_BAN_EMOTE		= "Emotes"
+local S_BAN_TRADE		= "Trade Requests"
+local S_BAN_INVITE		= "Invites"
+local S_BAN_DUEL		= "Duels"
 
 local T_RELOG		= 1
 local T_HOUR		= 2
-local T_DAY			= 3
+local T_DAY		= 3
 local T_WEEK		= 4
 local T_MONTH		= 5
 local T_FOREVER		= 6
@@ -238,18 +238,18 @@ end
 SI_IsChannelBanned = function(c)
 	local g = SI_Global
 
-	if c == "WHISPER"		then return g.BanOptWhisper end
+	if c == "WHISPER"	then return g.BanOptWhisper end
 	if(c == "PARTY" or c == "RAID" or c == "RAID_LEADER" or c == "RAID_WARNING")
-							then return g.BanOptParty end
-	if c == "GUILD"			then return g.BanOptGuild end
-	if c == "OFFICER"		then return g.BanOptOfficer end
-	if c == "SAY"			then return g.BanOptSay end
-	if c == "YELL"			then return g.BanOptYell end
+				then return g.BanOptParty end
+	if c == "GUILD"		then return g.BanOptGuild end
+	if c == "OFFICER"	then return g.BanOptOfficer end
+	if c == "SAY"		then return g.BanOptSay end
+	if c == "YELL"		then return g.BanOptYell end
 	if(c == "BATTLEGROUND" or c == "BATTLEGROUND_LEADER")
-							then return g.BanOptBg end
-	if c == "CHANNEL"		then return g.BanOptPublic end
+				then return g.BanOptBg end
+	if c == "CHANNEL"	then return g.BanOptPublic end
 	if(c == "EMOTE" or c == "TEXT_EMOTE")
-							then return g.BanOptEmote end
+				then return g.BanOptEmote end
 
 	return false
 end
@@ -331,9 +331,9 @@ end
 ------------- Overrides
 
 
-SI_AddIgnore_Old			= nil
+SI_AddIgnore_Old		= nil
 SI_AddOrDelIgnore_Old		= nil
-SI_DelIgnore_Old			= nil
+SI_DelIgnore_Old		= nil
 SI_GetIgnoreName_Old		= nil
 SI_GetNumIgnores_Old		= nil
 SI_GetSelectedIgnore_Old	= nil
@@ -496,48 +496,48 @@ end
 
 SI_HookFunctions = function()
 
-	SI_AddIgnore_Old			= AddIgnore
-	AddIgnore					= SI_AddIgnore_New
+	SI_AddIgnore_Old		= AddIgnore
+	AddIgnore			= SI_AddIgnore_New
 
 	SI_AddOrDelIgnore_Old		= AddOrDelIgnore
-	AddOrDelIgnore				= SI_AddOrDelIgnore_New
+	AddOrDelIgnore			= SI_AddOrDelIgnore_New
 
-	SI_DelIgnore_Old			= DelIgnore
-	DelIgnore					= SI_DelIgnore_New
+	SI_DelIgnore_Old		= DelIgnore
+	DelIgnore			= SI_DelIgnore_New
 
 	SI_GetIgnoreName_Old		= GetIgnoreName
-	GetIgnoreName				= SI_GetIgnoreName_New
+	GetIgnoreName			= SI_GetIgnoreName_New
 
 	SI_GetNumIgnores_Old		= GetNumIgnores
-	GetNumIgnores				= SI_GetNumIgnores_New
+	GetNumIgnores			= SI_GetNumIgnores_New
 
 	SI_GetSelectedIgnore_Old	= GetSelectedIgnore
-	GetSelectedIgnore			= SI_GetSelectedIgnore_New
+	GetSelectedIgnore		= SI_GetSelectedIgnore_New
 
 	SI_SetSelectedIgnore_Old	= SetSelectedIgnore
-	SetSelectedIgnore			= SI_SetSelectedIgnore_New
+	SetSelectedIgnore		= SI_SetSelectedIgnore_New
 
 	SI_StaticPopup_Show_Old		= StaticPopup_Show
-	StaticPopup_Show			= SI_StaticPopup_Show_New
+	StaticPopup_Show		= SI_StaticPopup_Show_New
 
 	SI_TradeFrame_OnEvent_Old	= TradeFrame_OnEvent
-	TradeFrame_OnEvent			= SI_TradeFrame_OnEvent_New
+	TradeFrame_OnEvent		= SI_TradeFrame_OnEvent_New
 
 	SI_ChatFrame_OnEvent_Old	= ChatFrame_OnEvent
-	ChatFrame_OnEvent			= SI_ChatFrame_OnEvent_New
+	ChatFrame_OnEvent		= SI_ChatFrame_OnEvent_New
 
 	if WIM_ChatFrame_OnEvent then
 		SI_WIM_ChatFrame_OnEvent_Old	= WIM_ChatFrame_OnEvent
-		WIM_ChatFrame_OnEvent			= SI_WIM_ChatFrame_OnEvent_New
+		WIM_ChatFrame_OnEvent		= SI_WIM_ChatFrame_OnEvent_New
 	end
 
 	if WhisperFu then
 		WhisperFu.OnReceiveWhisper_Old	= WhisperFu.OnReceiveWhisper
-		WhisperFu.OnReceiveWhisper		= SI_WhisperFu_OnReceiveWhisper_New
+		WhisperFu.OnReceiveWhisper	= SI_WhisperFu_OnReceiveWhisper_New
 	end
 
 	SI_SendChatMessage_Old		= SendChatMessage
-	SendChatMessage				= SI_SendChatMessage_New
+	SendChatMessage			= SI_SendChatMessage_New
 end
 
 SI_ApplyFilters = function()
@@ -648,14 +648,14 @@ SI_CreateFrames = function()
 		{"BanOptParty",		S_BAN_PARTY,	15},
 		{"BanOptGuild",		S_BAN_GUILD,	15},
 		{"BanOptOfficer",	S_BAN_OFFICER,	15},
-		{"BanOptSay",		S_BAN_SAY,		15},
-		{"BanOptYell",		S_BAN_YELL,		15},
-		{"BanOptBg",		S_BAN_BG,		15},
+		{"BanOptSay",		S_BAN_SAY,	15},
+		{"BanOptYell",		S_BAN_YELL,	15},
+		{"BanOptBg",		S_BAN_BG,	15},
 		{"BanOptPublic",	S_BAN_PUBLIC,	15},
 		{"BanOptEmote",		S_BAN_EMOTE,	15},
 		{"BanOptTrade",		S_BAN_TRADE,	15},
 		{"BanOptInvite",	S_BAN_INVITE,	15},
-		{"BanOptDuel",		S_BAN_DUEL,		25}
+		{"BanOptDuel",		S_BAN_DUEL,	25}
 	}
 
 	for i = 1, table.getn(options) do
@@ -715,26 +715,26 @@ SI_MainFrame:SetScript("OnEvent", function()
 				SI_Global = {
 					BannedPlayers	= {},
 					BannedSelected	= 1,
-					BannedParts		= {},
+					BannedParts	= {},
 
 					WhisperBlock	= false,
 					WhisperUnignore	= true,
 					AutoResponse	= false,
-					BanSpecial		= false,
-					BanDuration		= T_FOREVER,
+					BanSpecial	= false,
+					BanDuration	= T_FOREVER,
 
 					BanOptWhisper	= true,
-					BanOptParty		= false,
-					BanOptGuild		= false,
+					BanOptParty	= false,
+					BanOptGuild	= false,
 					BanOptOfficer	= false,
-					BanOptSay		= true,
-					BanOptYell		= true,
-					BanOptBg		= true,
+					BanOptSay	= true,
+					BanOptYell	= true,
+					BanOptBg	= true,
 					BanOptPublic	= true,
-					BanOptEmote		= true,
-					BanOptTrade		= true,
+					BanOptEmote	= true,
+					BanOptTrade	= true,
 					BanOptInvite	= true,
-					BanOptDuel		= true
+					BanOptDuel	= true
 				}
 			end
 
