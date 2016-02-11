@@ -1,8 +1,8 @@
 ## Interface: 11200
-## Title: SuperIgnore
+## Title: Super|cff60ff00Ignore|r
 ## Notes: Unlimited ignore list with many extra features
-## Author: https://github.com/EinBaum
-## Version: 1.1.5
+## Author: EinBaum https://github.com/EinBaum
+## Version: 1.1.6
 ## SavedVariables: SI_Global
 ## OptionalDeps: WIM, FuBar_WhisperFu
 
