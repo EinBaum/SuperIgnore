@@ -11,3 +11,7 @@
 - Remove "-master" from the directory name after downloading
 - Works with Prat
 - Works with WIM
+
+### Preview
+
+![Preview](/preview.jpg?raw=true "Preview")
