@@ -2,8 +2,6 @@
 - Ignored chat log
 - "Ignore" option when right clicking players
 - Set time individually
-- Auto-Block name-parts
-- Auto-Block by chat message
 
 ### Fix Bugs:
 - WhisperUnignore doesn't work for trades, invites and duels
