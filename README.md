@@ -10,4 +10,4 @@
 ### Installation Notes
 - Remove "-master" from the directory name after downloading
 - Works with Prat
-- Might not work with some chat AddOns (WIM shows whispers that should be hidden)
+- Works with WIM
