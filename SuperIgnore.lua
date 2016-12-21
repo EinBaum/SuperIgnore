@@ -1,8 +1,8 @@
 
 local S_ADDON_NAME		= "SuperIgnore"
-local S_ADDON_DIR		= "superignore"
-local S_ADDON_VERSION		= "1.1.6"
-local S_AUTO_RESPONSE		= "~Ignored~ (" .. S_ADDON_NAME .. " AddOn)"
+local S_ADDON_DIR		= strlower(S_ADDON_NAME)
+local S_ADDON_VERSION		= "1.1.7"
+local S_AUTO_RESPONSE		= "I'm ignoring you. (" .. S_ADDON_NAME .. " AddOn)"
 local S_TEXT_OPTIONS		= "Ignore Filter"
 local S_TEXT_EXTRA		= "Extra Features"
 local S_TEXT_DURATION		= "Default Ignore Time"
@@ -75,6 +75,7 @@ local T_Time_TextOpt = {
 
 SI_Filter = {}
 SI_MainFrame = nil
+SI_TimeCheck_Last = 0
 
 ------------- Filter
 
@@ -86,7 +87,6 @@ SI_DelFilter = function(filter)
 end
 
 SI_IsPlayerIgnored = function(name)
-
 	if name == UnitName("player") then
 		return false
 	end
@@ -151,6 +151,12 @@ SI_CheckBanTimes = function()
 
 	for _, name in unbanNames do
 		SI_DelIgnore_New(name)
+	end
+end
+SI_CheckBanTimesPeriodic = function()
+	if GetTime() - SI_TimeCheck_Last > 60 then
+		SI_TimeCheck_Last = GetTime()
+		SI_CheckBanTimes()
 	end
 end
 SI_FormatTimeNoStyle = function(t)
@@ -543,7 +549,7 @@ end
 SI_ApplyFilters = function()
 
 	SI_AddFilter(function(name)
-		SI_CheckBanTimes()
+		SI_CheckBanTimesPeriodic()
 		if SI_FindBannedPlayer(name) then
 			return true
 		end
