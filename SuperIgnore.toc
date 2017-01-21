@@ -18,3 +18,5 @@ modules\mod_06.lua
 modules\mod_07.lua
 modules\mod_08.lua
 modules\mod_09.lua
+
+ChatSanitizer\FilterLib.lua

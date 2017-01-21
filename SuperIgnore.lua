@@ -14,6 +14,7 @@ local SS = {
 	["TextWhisperBlock"]	= "Do not let me whisper\nignored players",
 	["TextWhisperUnignore"]	= "Unignore players if I\nwhisper them",
 	["TextAutoResponse"]	= "Notify ignored players\nwho interact with me\n(only once)",
+	["TextDebugLog"]		= "Debug: Log ignored\nactions in chat",
 
 	["TextEnabled"]			= "Enabled",
 
@@ -48,8 +49,6 @@ local SS = {
 	["TimeForever"]			= "Forever",
 	["TimeAuto"]			= "Auto-Block"
 }
-
-local S_TEXT_SPECIAL		= "Auto-Block players\nwith special characters\nin their names"
 
 local T_RELOG		= 1
 local T_HOUR		= 2
@@ -101,13 +100,30 @@ SI_ModsFramePad = 0
 
 ------------- Misc
 
-local createHeader = function(frame, text, fontSize, pad)
+SI_FrameCreateHeader = function(frame, text, fontSize, pad)
 	local t = frame:CreateFontString(nil, "OVERLAY", frame)
 	t:SetPoint("TOP", frame, "TOP", 0, pad)
 	t:SetFont("Fonts\\FRIZQT__.TTF", fontSize)
 	t:SetTextColor(1,0.82,0)
 	t:SetText(text)
 	return t
+end
+
+SI_FrameCreateOption = function(frame, name, desc, pad, onclick)
+	local c = CreateFrame("CheckButton", name, frame, "UICheckButtonTemplate")
+	c:SetHeight(20)
+	c:SetWidth(20)
+	c:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, pad)
+	c:SetScript("OnClick", function()
+		onclick(c:GetChecked())
+	end)
+
+	local ct = frame:CreateFontString(nil, "OVERLAY", frame)
+	ct:SetPoint("LEFT", c, "RIGHT", 0, 0)
+	ct:SetFont("Fonts\\FRIZQT__.TTF", 11)
+	ct:SetText(desc)
+
+	return c, ct
 end
 
 ------------- Mods
@@ -123,7 +139,7 @@ end
 local createModUI = function(index, mod)
 	local f = SI_ModsFrame
 
-	createHeader(f, mod.Name, 12, SI_ModsFramePad)
+	SI_FrameCreateHeader(f, mod.Name, 12, SI_ModsFramePad)
 	SI_ModsFramePad = SI_ModsFramePad - 15
 
 	local c = CreateFrame("CheckButton", "SI_ModEnable_"..mod.Name, f, "UICheckButtonTemplate")
@@ -170,8 +186,10 @@ SI_ModEnable = function(index)
 	if mod.ChatFilter then
 		SI_AddChatFilter(mod.ChatFilter)
 	end
+	if mod.OnEnable then
+		mod.OnEnable()
+	end
 	SI_Global.ModsEnabled[mod.Name] = 1
-	SI_Mods[index].OnEnable()
 end
 
 SI_ModDisable = function(index)
@@ -182,8 +200,10 @@ SI_ModDisable = function(index)
 	if mod.ChatFilter then
 		SI_DelChatFilter(mod.ChatFilter)
 	end
+	if mod.OnDisable then
+		mod.OnDisable()
+	end
 	SI_Global.ModsEnabled[mod.Name] = nil
-	SI_Mods[index].OnDisable()
 end
 
 ------------- Filter
@@ -231,7 +251,7 @@ SI_FilterIsChatIgnored = function(message, name)
 	end
 
 	for _, filter in SI_ChatFilter do
-		if filter(name) then
+		if filter(message, name) then
 			SI_CheckAutoBlock(name)
 			return true
 		end
@@ -469,12 +489,12 @@ SI_IsChatIgnored = function(event, arg1, arg2)
 					SI_CheckAutoResponse(arg2)
 				end
 
-				SI_LogIgnore(arg2, arg1)
+				SI_LogIgnore(arg1, arg2)
 				return true
 			end
 
 			if SI_FilterIsChatIgnored(arg1, arg2) then
-				SI_LogIgnore(arg2, arg1)
+				SI_LogIgnore(arg1, arg2)
 				return true
 			end
 		end
@@ -733,7 +753,9 @@ end
 ------------- Log
 
 SI_LogIgnore = function(text, name)
-	--SI_Print("IGNORED: " .. name .. ": " .. text)
+	if SI_Global.DebugLog then
+		SI_Print("IGNORED: " .. name .. ": " .. text)
+	end
 end
 
 ------------- Frames
@@ -757,27 +779,17 @@ SI_CreateOptionsFrame = function()
 	local pad = 0
 
 	local createOpt = function(index, var, desc, padding, onclick)
-		local c = CreateFrame("CheckButton", "SI_Box_"..index, f, "UICheckButtonTemplate")
-		c:SetHeight(20)
-		c:SetWidth(20)
-		c:SetPoint("TOPLEFT", f, "TOPLEFT", 15, padding)
-		c:SetScript("OnClick", function()
-			local checked = c:GetChecked()
+		local c, ct = SI_FrameCreateOption(f, "SI_Box_"..index, desc, padding, function(checked)
 			SI_Global[var] = checked
 			if onclick then onclick(checked) end
 		end)
 		c:SetChecked(SI_Global[var])
 
-		local ct = f:CreateFontString(nil, "OVERLAY", f)
-		ct:SetPoint("LEFT", c, "RIGHT", 0, 0)
-		ct:SetFont("Fonts\\FRIZQT__.TTF", 11)
-		ct:SetText(desc)
-
 		return c, ct
 	end
 
 	pad = pad - 15
-	createHeader(f, string.format("%s %s", SS.AddonName, SS.AddonVersion), 12, pad)
+	SI_FrameCreateHeader(f, string.format("%s %s", SS.AddonName, SS.AddonVersion), 12, pad)
 	pad = pad - 25
 
 	createOpt(100, "WhisperBlock", SS.TextWhisperBlock, pad, function(checked)
@@ -793,7 +805,10 @@ SI_CreateOptionsFrame = function()
 	createOpt(102, "AutoResponse", SS.TextAutoResponse, pad)
 	pad = pad - 35
 
-	createHeader(f, SS.TextOptions, 11, pad)
+	createOpt(103, "DebugLog", SS.TextDebugLog, pad)
+	pad = pad - 35
+
+	SI_FrameCreateHeader(f, SS.TextOptions, 11, pad)
 	pad = pad - 15
 
 	local options = {
@@ -819,7 +834,7 @@ SI_CreateOptionsFrame = function()
 		pad = pad - optPadding
 	end
 
-	createHeader(f, SS.TextDuration, 11, pad)
+	SI_FrameCreateHeader(f, SS.TextDuration, 11, pad)
 	pad = pad - 15
 
 	local dd = CreateFrame("Button", "SI_BanDuration", f, "UIDropDownMenuTemplate")
@@ -908,6 +923,7 @@ SI_MainFrame:SetScript("OnEvent", function()
 					WhisperBlock	= false,
 					WhisperUnignore	= true,
 					AutoResponse	= false,
+					DebugLog		= false,
 					BanDuration		= T_FOREVER,
 
 					BanOptWhisper	= true,

@@ -1,20 +1,20 @@
 
+local namefilter = function(name)
+	if string.find(name, "[^a-zA-Z]") then
+		return true
+	end
+	return false
+end
+
 local mod = {
 	["Name"] = "Special Snowflake Blocker",
 	["Description"] = "Blocks messages sent by players who have special characters in their names.",
-	["OnEnable"] = function() 
-	end,
-	["OnDisable"] = function()
-	end,
+	["OnEnable"] = nil,
+	["OnDisable"] = nil,
 	["CreateUI"] = function(frame, pad)
 		return pad
 	end,
-	["NameFilter"] = function(name)
-		if string.find(name, "[^a-zA-Z]") then
-			return true
-		end
-		return false
-	end,
+	["NameFilter"] = namefilter,
 	["ChatFilter"] = nil,
 }
 
