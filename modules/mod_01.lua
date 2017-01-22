@@ -1,6 +1,6 @@
 
 if not ChatSanitizer then ChatSanitizer = {} end
-local chatfilter = function(message, name)
+local chatfilter = function(message, name, type)
 	return (ChatSanitizer:Filter(message) == "")
 end
 

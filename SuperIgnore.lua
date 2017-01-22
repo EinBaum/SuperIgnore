@@ -245,13 +245,13 @@ SI_FilterIsPlayerIgnored = function(name)
 	return false
 end
 
-SI_FilterIsChatIgnored = function(message, name)
+SI_FilterIsChatIgnored = function(message, name, type)
 	if name == UnitName("player") then
 		return false
 	end
 
 	for _, filter in SI_ChatFilter do
-		if filter(message, name) then
+		if filter(message, name, type) then
 			SI_CheckAutoBlock(name)
 			return true
 		end
@@ -493,7 +493,7 @@ SI_IsChatIgnored = function(event, arg1, arg2)
 				return true
 			end
 
-			if SI_FilterIsChatIgnored(arg1, arg2) then
+			if SI_FilterIsChatIgnored(arg1, arg2, type) then
 				SI_LogIgnore(arg1, arg2)
 				return true
 			end
