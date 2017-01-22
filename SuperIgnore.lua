@@ -152,14 +152,14 @@ local createModUI = function(index, mod)
 		local checked = c:GetChecked()
 		if checked then SI_ModEnable(index) else SI_ModDisable(index) end
 	end)
-	c:SetChecked(SI_Global.ModsEnabled[mod.Name])
+	c:SetChecked(SI_Global.Mods[mod.Name].Enabled)
 
 	local ct = f:CreateFontString(nil, "OVERLAY", f)
 	ct:SetPoint("LEFT", c, "RIGHT", 0, 0)
 	ct:SetFont("Fonts\\FRIZQT__.TTF", 11)
 	ct:SetText(SS.TextEnabled)
 
-	SI_ModsFramePad = SI_ModsFramePad - 25
+	SI_ModsFramePad = SI_ModsFramePad - 35
 	if mod.CreateUI then
 		SI_ModsFramePad = mod.CreateUI(f, SI_ModsFramePad)
 	end
@@ -171,9 +171,16 @@ SI_ModInstall = function(mod)
 	local index = SI_ModsGetNumber() + 1
 	SI_Mods[index] = mod
 
+	if not SI_Global.Mods[mod.Name] then
+		SI_Global.Mods[mod.Name] = {
+			["Enabled"] = false,
+			["Vars"] = {}
+		}
+	end
+
 	createModUI(index, mod)
 
-	if SI_Global.ModsEnabled[mod.Name] then
+	if SI_Global.Mods[mod.Name].Enabled then
 		SI_ModEnable(index)
 	end
 
@@ -191,7 +198,7 @@ SI_ModEnable = function(index)
 	if mod.OnEnable then
 		mod.OnEnable()
 	end
-	SI_Global.ModsEnabled[mod.Name] = 1
+	SI_Global.Mods[mod.Name].Enabled = true
 end
 
 SI_ModDisable = function(index)
@@ -205,7 +212,17 @@ SI_ModDisable = function(index)
 	if mod.OnDisable then
 		mod.OnDisable()
 	end
-	SI_Global.ModsEnabled[mod.Name] = nil
+	SI_Global.Mods[mod.Name].Enabled = false
+end
+
+SI_ModGetVar = function(name)
+	local modinfo = SI_Global.Mods[mod.Name]
+	return modinfo.Vars[name]
+end
+
+SI_ModSetVar = function(name, value)
+	local modinfo = SI_Global.Mods[mod.Name]
+	modinfo.Vars[name] = value
 end
 
 ------------- Filter
@@ -999,7 +1016,7 @@ SI_MainFrame:SetScript("OnEvent", function()
 					BanOptInvite	= true,
 					BanOptDuel		= true,
 
-					ModsEnabled		= {},
+					Mods			= {},
 				}
 			end
 
