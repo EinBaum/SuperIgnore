@@ -98,6 +98,8 @@ SI_TimeCheck_Last = 0
 SI_Mods = {}
 SI_ModsFramePad = 0
 
+SI_Log = {}
+
 ------------- Misc
 
 SI_FrameCreateHeader = function(frame, text, fontSize, pad)
@@ -752,10 +754,34 @@ end
 
 ------------- Log
 
+
 SI_LogIgnore = function(text, name)
 	if SI_Global.DebugLog then
 		SI_Print("IGNORED: " .. name .. ": " .. text)
 	end
+
+	SI_LogAdd(text, name)
+end
+
+SI_LogAdd = function(text, name)
+	for _, msg in SI_Log do
+		if msg[1] == name and msg[2] == text then
+			return
+		end
+	end
+	table.insert(SI_Log, {[1] = name, [2] = text})
+end
+
+SI_LogGetByName = function(name)
+	local log = {}
+
+	for _, msg in SI_Log do
+		if msg[1] == name then
+			table.insert(log, msg[2])
+		end
+	end
+
+	return log
 end
 
 ------------- Frames
@@ -880,6 +906,28 @@ SI_ModsFrameUpdateHeight = function()
 	SI_ModsFrame:SetHeight(20 + (- SI_ModsFramePad))
 end
 
+SI_CreateTooltips = function()
+	for i = 1, 20 do
+		local index = i
+		local b = getglobal("FriendsFrameIgnoreButton" .. index)
+		b:SetScript("OnEnter", function()
+			local fauxIndex = FauxScrollFrame_GetOffset(FriendsFrameIgnoreScrollFrame) + index
+			local banned = SI_Global.BannedPlayers[fauxIndex]
+			local name = banned[B_NAME]
+			local log = SI_LogGetByName(name)
+			GameTooltip:SetOwner(b, "ANCHOR_CURSOR")
+			GameTooltip:SetText(name)
+			for _, v in log do
+				GameTooltip:AddLine(v, 1, 1, 1)
+			end
+			GameTooltip:Show()
+		end)
+		b:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+	end
+end
+
 SI_CreateShowButton = function()
 	local b = CreateFrame("Button", "SI_OpenButton", IgnoreListFrame, "UIPanelButtonTemplate")
 	b:SetHeight(21)
@@ -902,6 +950,7 @@ end
 SI_CreateFrames = function()
 	SI_CreateOptionsFrame()
 	SI_CreateModsFrame()
+	SI_CreateTooltips()
 	SI_CreateShowButton()
 end
 
