@@ -1,12 +1,12 @@
 
 if not ChatSanitizer then ChatSanitizer = {} end
 local chatfilter = function(message, name)
-	ChatSanitizer:Filter(message)
+	return (ChatSanitizer:Filter(message) == "")
 end
 
 local mod = {
-	["Name"] = "Spam Blocker",
-	["Description"] = "Blocks spam messages in chat.",
+	["Name"] = "ChatSanitizer",
+	["Description"] = "Blocks spam messages. https://github.com/Aviana/ChatSanitizer",
 	["OnEnable"] = nil,
 	["OnDisable"] = nil,
 	["CreateUI"] = function(frame, pad)
