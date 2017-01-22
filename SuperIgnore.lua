@@ -390,6 +390,25 @@ SI_BannedGetIndex = function(name)
 	return nil
 end
 
+SI_BannedGetDuration = function(index)
+	return SI_Global.BannedPlayers[index][B_DURATION]
+end
+SI_BannedSetDuration = function(index, duration)
+	SI_Global.BannedPlayers[index][B_DURATION] = duration
+end
+SI_BannedGetName = function(index)
+	return SI_Global.BannedPlayers[index][B_NAME]
+end
+SI_BannedSetName = function(index, name)
+	SI_Global.BannedPlayers[index][B_NAME] = name
+end
+SI_BannedGetNotified = function(index)
+	return SI_Global.BannedPlayers[index][B_NOTIFIED]
+end
+SI_BannedSetNotified = function(index, notified)
+	SI_Global.BannedPlayers[index][B_NOTIFIED] = notified
+end
+
 SI_BannedSortByTime = function()
 	table.sort(SI_Global.BannedPlayers, function(a, b)
 		local at = a[B_DURATION]
@@ -437,8 +456,8 @@ SI_CheckAutoResponse = function(name)
 	if SI_Global.AutoResponse then
 		local index = SI_BannedGetIndex(name)
 		if index then
-			if not SI_Global.BannedPlayers[index][B_NOTIFIED] then
-				SI_Global.BannedPlayers[index][B_NOTIFIED] = true
+			if not SI_BannedGetNotified(index) then
+				SI_BannedSetNotified(index, true)
 				SI_SendChatMessage_Old(SS.AutoResponse, "WHISPER", nil, name)
 			end
 		end
@@ -535,7 +554,7 @@ SI_AddIgnore_New = function(name, quiet, banTime)
 
 	local index = SI_BannedGetIndex(name)
 	if index then
-		SI_Global.BannedPlayers[index][B_DURATION] = banTime
+		SI_BannedSetDuration(index, banTime)
 	else
 		table.insert(SI_Global.BannedPlayers, {name, banTime, false})
 	end
@@ -725,15 +744,9 @@ SI_ApplyFilters = function()
 
 	SI_AddNameFilter(function(name)
 		SI_BannedCheckTimesPeriodic()
-		if SI_BannedGetIndex(name) then
+		local index = SI_BannedGetIndex(name)
+		if index and SI_BannedGetDuration(index) ~= TI_AUTOBLOCK then
 			return true
-		end
-	end)
-	SI_AddNameFilter(function(name)
-		for _, test in SI_Global.BannedParts do
-			if string.find(string.lower(name), test) then
-				return true
-			end
 		end
 	end)
 end
@@ -912,8 +925,7 @@ SI_CreateTooltips = function()
 		local b = getglobal("FriendsFrameIgnoreButton" .. index)
 		b:SetScript("OnEnter", function()
 			local fauxIndex = FauxScrollFrame_GetOffset(FriendsFrameIgnoreScrollFrame) + index
-			local banned = SI_Global.BannedPlayers[fauxIndex]
-			local name = banned[B_NAME]
+			local name = SI_BannedGetName(fauxIndex)
 			local log = SI_LogGetByName(name)
 			GameTooltip:SetOwner(b, "ANCHOR_CURSOR")
 			GameTooltip:SetText(name)
@@ -967,7 +979,6 @@ SI_MainFrame:SetScript("OnEvent", function()
 				SI_Global = {
 					BannedPlayers	= {},
 					BannedSelected	= 1,
-					BannedParts		= {},
 
 					WhisperBlock	= false,
 					WhisperUnignore	= true,
