@@ -8,6 +8,8 @@
 
 SuperIgnore.lua
 
+ChatSanitizer\FilterLib.lua
+
 modules\mod_00.lua
 modules\mod_01.lua
 modules\mod_02.lua
@@ -18,5 +20,3 @@ modules\mod_06.lua
 modules\mod_07.lua
 modules\mod_08.lua
 modules\mod_09.lua
-
-ChatSanitizer\FilterLib.lua
