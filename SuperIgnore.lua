@@ -189,6 +189,8 @@ end
 
 SI_ModEnable = function(index)
 	local mod = SI_Mods[index]
+	SI_Global.Mods[mod.Name].Enabled = true
+
 	if mod.NameFilter then
 		SI_AddNameFilter(mod.NameFilter)
 	end
@@ -198,11 +200,12 @@ SI_ModEnable = function(index)
 	if mod.OnEnable then
 		mod.OnEnable()
 	end
-	SI_Global.Mods[mod.Name].Enabled = true
 end
 
 SI_ModDisable = function(index)
 	local mod = SI_Mods[index]
+	SI_Global.Mods[mod.Name].Enabled = false
+
 	if mod.NameFilter then
 		SI_DelNameFilter(mod.NameFilter)
 	end
@@ -212,7 +215,6 @@ SI_ModDisable = function(index)
 	if mod.OnDisable then
 		mod.OnDisable()
 	end
-	SI_Global.Mods[mod.Name].Enabled = false
 end
 
 SI_ModGetVar = function(name)
