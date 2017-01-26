@@ -2,16 +2,27 @@
 - Unlimited ignore list size
 - Temporary ignores
 - Ignore only in specific chat channels
-- Uses the default WoW interface and /ignore command
+- Uses default WoW interface and /ignore command
 
-### Bonus Features
-- Auto-Block players with special characters in their names
-
-### Installation Notes
+## Installation Notes
 - Remove "-master" from the directory name after downloading
-- Works with Prat
-- Works with WIM
+- Works with Prat, WIM and WhisperFu
 
-### Preview
+## Modules
+- Additional modules can be added at any time
+- Modules can filter names and messages
+
+#### Special Snowflake Blocker
+- Blocks messages sent by players who have special characters in their names
+
+#### ChatSanitizer
+- Blocks spam and advertisements
+
+#### Custom Message Blocker
+- Create your own message filters
+
+## Preview
+
+(This is preview of an older version)
 
 ![Preview](/preview.jpg?raw=true "Preview")
