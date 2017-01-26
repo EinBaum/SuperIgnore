@@ -8,6 +8,7 @@
 
 SuperIgnore.lua
 
+ChatSanitizer\FriendLib.lua
 ChatSanitizer\FilterLib.lua
 
 modules\mod_00.lua
