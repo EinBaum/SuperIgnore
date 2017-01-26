@@ -1,6 +1,6 @@
 
 local chatfilter = function(message, name, type)
-	return (FilterLib:Filter(message) == "")
+	return (not FriendLib:IsFriend(name)) and (FilterLib:Filter(message) == "")
 end
 
 local mod = {
