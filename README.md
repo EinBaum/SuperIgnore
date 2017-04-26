@@ -1,28 +1,24 @@
 # SuperIgnore
 - Unlimited ignore list size
-- Temporary ignores
-- Ignore only in specific chat channels
+- Temporary (timed) ignores
+- Ignore only in selected chat channels
 - Uses default WoW interface and /ignore command
-
-## Installation Notes
-- Remove "-master" from the directory name after downloading
 - Works with Prat, WIM and WhisperFu
 
 ## Modules
-- Additional modules can be added at any time
+- Additional modules can be enabled at any time
 - Modules can filter names and messages
 
 #### Special Snowflake Blocker
 - Blocks messages sent by players who have special characters in their names
 
-#### ChatSanitizer
+#### [ChatSanitizer](https://github.com/Aviana/ChatSanitizer)
 - Blocks spam and advertisements
 
-#### Custom Message Blocker
-- Create your own message filters
+#### Custom Filter
+- Create your own list of banned phrases
+- Players writing these phrases will be temporarily blocked
 
 ## Preview
-
-(This is preview of an older version)
 
 ![Preview](/preview.jpg?raw=true "Preview")

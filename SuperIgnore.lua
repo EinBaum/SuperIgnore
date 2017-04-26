@@ -1,6 +1,6 @@
 
 local name = "SuperIgnore"
-local version = "1.2.0"
+local version = "1.3.0"
 
 local SS = {
 	["AddonName"]			= name,
@@ -102,6 +102,21 @@ SI_Log = {}
 
 ------------- Misc
 
+SI_FrameCreateFrame = function(name, width, parent, x, y)
+	local f = CreateFrame("Frame", name, parent)
+
+	f:SetWidth(width)
+	f:SetBackdrop({
+		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background", tile = true, tileSize = 32,
+		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+		insets = {left = 11, right = 12, top = 12, bottom = 11},
+	})
+	f:SetPoint("TOPLEFT", parent, "TOPRIGHT", x, y)
+	f:Hide()
+
+	return f
+end
+
 SI_FrameCreateHeader = function(frame, text, fontSize, pad)
 	local t = frame:CreateFontString(nil, "OVERLAY", frame)
 	t:SetPoint("TOP", frame, "TOP", 0, pad)
@@ -126,6 +141,17 @@ SI_FrameCreateOption = function(frame, name, desc, pad, onclick)
 	ct:SetText(desc)
 
 	return c, ct
+end
+
+SI_FrameCreateButton = function(frame, text, pad, onclick)
+	local b = CreateFrame("Button", text, frame, "UIPanelButtonTemplate")
+	b:SetHeight(20)
+	b:SetWidth(140)
+	b:SetPoint("TOPLEFT", frame, "TOPLEFT", 35, pad)
+	b:SetText(text)
+	b:SetScript("OnClick", onclick)
+
+	return b
 end
 
 ------------- Mods
@@ -159,10 +185,11 @@ local createModUI = function(index, mod)
 	ct:SetFont("Fonts\\FRIZQT__.TTF", 11)
 	ct:SetText(SS.TextEnabled)
 
-	SI_ModsFramePad = SI_ModsFramePad - 35
+	SI_ModsFramePad = SI_ModsFramePad - 20
 	if mod.CreateUI then
 		SI_ModsFramePad = mod.CreateUI(f, SI_ModsFramePad)
 	end
+	SI_ModsFramePad = SI_ModsFramePad - 15
 
 	SI_ModsFrameUpdateHeight()
 end
@@ -217,12 +244,12 @@ SI_ModDisable = function(index)
 	end
 end
 
-SI_ModGetVar = function(name)
+SI_ModGetVar = function(mod, name)
 	local modinfo = SI_Global.Mods[mod.Name]
 	return modinfo.Vars[name]
 end
 
-SI_ModSetVar = function(name, value)
+SI_ModSetVar = function(mod, name, value)
 	local modinfo = SI_Global.Mods[mod.Name]
 	modinfo.Vars[name] = value
 end
@@ -513,6 +540,11 @@ SI_IsChatIgnored = function(event, arg1, arg2)
 			found, _, name = SI_StringFindPattern(arg1, ERR_INVITED_TO_GROUP_S)
 			if found and name and SI_FilterIsPlayerIgnored(name) then
 				SI_LogIgnore(SS.LogInviteParty, name)
+				return true
+			end
+
+			if SI_FilterIsChatIgnored(arg1, nil, type) then
+				SI_LogIgnore(arg1, "SYSTEM")
 				return true
 			end
 		end
@@ -821,18 +853,9 @@ end
 
 SI_CreateOptionsFrame = function()
 
-	SI_OptionsFrame = CreateFrame("Frame", "SI_OptionsFrame", IgnoreListFrame)
-	local f = SI_OptionsFrame
-
 	-- Height set at function end
-	f:SetWidth(185)
-	f:SetBackdrop({
-		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background", tile = true, tileSize = 32,
-		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-		insets = {left = 11, right = 12, top = 12, bottom = 11},
-	})
-	f:SetPoint("TOPLEFT", IgnoreListFrame, "TOPRIGHT", -34, -7)
-	f:Hide()
+	SI_OptionsFrame = SI_FrameCreateFrame("SI_OptionsFrame", 185, IgnoreListFrame, -34, -7)
+	local f = SI_OptionsFrame
 
 	local pad = 0
 
@@ -918,18 +941,7 @@ SI_CreateOptionsFrame = function()
 end
 
 SI_CreateModsFrame = function()
-	SI_ModsFrame = CreateFrame("Frame", "SI_ModsFrame", IgnoreListFrame)
-	local f = SI_ModsFrame
-
-	f:SetWidth(210)
-	f:SetBackdrop({
-		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background", tile = true, tileSize = 32,
-		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-		insets = {left = 11, right = 12, top = 12, bottom = 11},
-	})
-	f:SetPoint("TOPLEFT", SI_OptionsFrame, "TOPRIGHT", -10, 0)
-	f:Hide()
-
+	SI_ModsFrame = SI_FrameCreateFrame("SI_ModsFrame", 210, SI_OptionsFrame, -10, 0)
 	SI_ModsFramePad = -15
 	SI_ModsFrameUpdateHeight()
 end
