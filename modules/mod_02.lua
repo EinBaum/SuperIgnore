@@ -41,15 +41,12 @@ end
 m.updatePhrases = function()
 	local text = box:GetText()
 	SI_ModSetVar(m.mod, "Text", text)
-	SI_Print("----  start")
 	phrases = {}
-	for i, p in getlines(text) do
+	for _, p in getlines(text) do
 		if p ~= "" then
 			table.insert(phrases, strupper(p))
-			SI_Print(i .. " " .. strupper(p))
 		end
 	end
-	SI_Print("----end")
 end
 
 m.createFrame = function(frame)
