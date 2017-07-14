@@ -2,7 +2,7 @@
 ## Title: Super|cff60ff00Ignore|r
 ## Notes: Unlimited ignore list with many extra features
 ## Author: EinBaum https://github.com/EinBaum
-## Version: 1.3.0
+## Version: 1.3.1
 ## SavedVariables: SI_Global
 ## OptionalDeps: WIM, FuBar_WhisperFu
 

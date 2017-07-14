@@ -16,6 +16,7 @@ local SS = {
 	["TextAutoResponse"]	= "Notify ignored players\nwho interact with me\n(only once)",
 	["TextDebugLog"]		= "Debug: Log ignored\nactions in chat",
 
+	["TextInformation"]		= "Information",
 	["TextEnabled"]			= "Enabled",
 
 	["ChatIgnored"]			= "%s is now being ignored. Duration: %s.",
@@ -156,6 +157,13 @@ end
 
 ------------- Mods
 
+StaticPopupDialogs["SI_ModInfo"] = {
+	text = "",
+	button1 = TEXT(ACCEPT),
+	timeout = 0,
+	hideOnEscape = 1
+}
+
 SI_ModsGetNumber = function()
 	return table.getn(SI_Mods)
 end
@@ -169,6 +177,18 @@ local createModUI = function(index, mod)
 
 	SI_FrameCreateHeader(f, mod.Name, 12, SI_ModsFramePad)
 	SI_ModsFramePad = SI_ModsFramePad - 15
+
+	if mod.Description then
+		SI_FrameCreateButton(f, SS.TextInformation, SI_ModsFramePad, function()
+			local t = mod.Description
+			if mod.Help then
+				t = t .. "|n|n" .. mod.Help
+			end
+			StaticPopupDialogs["SI_ModInfo"].text = t
+			StaticPopup_Show("SI_ModInfo")
+		end)
+		SI_ModsFramePad = SI_ModsFramePad - 20
+	end
 
 	local c = CreateFrame("CheckButton", "SI_ModEnable_"..mod.Name, f, "UICheckButtonTemplate")
 	c:SetHeight(20)
@@ -184,8 +204,8 @@ local createModUI = function(index, mod)
 	ct:SetPoint("LEFT", c, "RIGHT", 0, 0)
 	ct:SetFont("Fonts\\FRIZQT__.TTF", 11)
 	ct:SetText(SS.TextEnabled)
-
 	SI_ModsFramePad = SI_ModsFramePad - 20
+
 	if mod.CreateUI then
 		SI_ModsFramePad = mod.CreateUI(f, SI_ModsFramePad)
 	end

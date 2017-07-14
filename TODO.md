@@ -1,7 +1,6 @@
 ### TODO Features:
 - "Ignore" option when right clicking players
 - Set time individually
-- Add info and help to the modules GUI
 
 ### Fix Bugs:
 - WhisperUnignore doesn't work for trades, invites and duels
