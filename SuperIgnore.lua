@@ -1,6 +1,6 @@
 
 local name = "SuperIgnore"
-local version = "1.3.1"
+local version = "1.3.2"
 
 local SS = {
 	["AddonName"]			= name,
