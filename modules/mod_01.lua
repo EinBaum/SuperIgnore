@@ -8,7 +8,7 @@ end
 local mod = {
 	["Name"] = "ChatSanitizer",
 	["Description"] = "Blocks gold spam and advertisements.",
-	["Help"] = "Knows how common spam messages look like, e.g. what words they are made of. Friends, party and guild members are never ignored. More info here:|nhttps://github.com/Aviana/ChatSanitizer",
+	["Help"] = "Knows how common spam messages look like, e.g. what words they are made of. Friends, party and guild members are never ignored. More info here:|n|nhttps://github.com/Aviana/ChatSanitizer",
 	["OnEnable"] = nil,
 	["OnDisable"] = nil,
 	["CreateUI"] = function(frame, pad)

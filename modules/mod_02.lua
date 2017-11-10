@@ -74,7 +74,7 @@ end
 
 m.createUI = function(frame, pad)
 	m.createFrame(frame)
-	SI_FrameCreateButton(frame, "Options", pad, function()
+	SI_FrameCreateButton(frame, "Phrases", pad, function()
 		if gui:IsShown() then
 			gui:Hide()
 		else
@@ -87,7 +87,7 @@ end
 m.mod = {
 	["Name"] = "Custom Filter",
 	["Description"] = "Blocks all messages containing a phrase.",
-	["Help"] = "Enter one phrase per line in the options window. Players that write messages containing one of these phrases will be temporarily ignored. Friends, party and guild members are never ignored.",
+	["Help"] = "Enter one phrase per line in the 'Phrases' window. Players that write messages containing one of these phrases will be temporarily ignored. Friends, party and guild members are never ignored.",
 	["OnEnable"] = m.updatePhrases,
 	["OnDisable"] = nil,
 	["CreateUI"] = m.createUI,

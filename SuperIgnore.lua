@@ -1,6 +1,6 @@
 
 local name = "SuperIgnore"
-local version = "1.3.2"
+local version = "1.3.3"
 
 local SS = {
 	["AddonName"]			= name,
@@ -16,7 +16,7 @@ local SS = {
 	["TextAutoResponse"]	= "Notify ignored players\nwho interact with me\n(only once)",
 	["TextDebugLog"]		= "Debug: Log ignored\nactions in chat",
 
-	["TextInformation"]		= "Information",
+	["TextInformation"]		= "Info",
 	["TextEnabled"]			= "Enabled",
 
 	["ChatIgnored"]			= "%s is now being ignored. Duration: %s.",
@@ -147,8 +147,8 @@ end
 SI_FrameCreateButton = function(frame, text, pad, onclick)
 	local b = CreateFrame("Button", text, frame, "UIPanelButtonTemplate")
 	b:SetHeight(20)
-	b:SetWidth(140)
-	b:SetPoint("TOPLEFT", frame, "TOPLEFT", 35, pad)
+	b:SetWidth(85)
+	b:SetPoint("TOPLEFT", frame, "TOPLEFT", 100, pad)
 	b:SetText(text)
 	b:SetScript("OnClick", onclick)
 
@@ -176,7 +176,7 @@ local createModUI = function(index, mod)
 	local f = SI_ModsFrame
 
 	SI_FrameCreateHeader(f, mod.Name, 12, SI_ModsFramePad)
-	SI_ModsFramePad = SI_ModsFramePad - 15
+	SI_ModsFramePad = SI_ModsFramePad - 18
 
 	if mod.Description then
 		SI_FrameCreateButton(f, SS.TextInformation, SI_ModsFramePad, function()
@@ -187,7 +187,6 @@ local createModUI = function(index, mod)
 			StaticPopupDialogs["SI_ModInfo"].text = t
 			StaticPopup_Show("SI_ModInfo")
 		end)
-		SI_ModsFramePad = SI_ModsFramePad - 20
 	end
 
 	local c = CreateFrame("CheckButton", "SI_ModEnable_"..mod.Name, f, "UICheckButtonTemplate")
@@ -209,7 +208,7 @@ local createModUI = function(index, mod)
 	if mod.CreateUI then
 		SI_ModsFramePad = mod.CreateUI(f, SI_ModsFramePad)
 	end
-	SI_ModsFramePad = SI_ModsFramePad - 15
+	SI_ModsFramePad = SI_ModsFramePad - 25
 
 	SI_ModsFrameUpdateHeight()
 end
