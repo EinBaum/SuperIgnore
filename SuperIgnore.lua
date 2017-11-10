@@ -1,6 +1,6 @@
 
 local name = "SuperIgnore"
-local version = "1.3.3"
+local version = "1.3.4"
 
 local SS = {
 	["AddonName"]			= name,
@@ -839,20 +839,21 @@ end
 
 
 SI_LogIgnore = function(text, name)
-	if SI_Global.DebugLog then
+	local logSuccess = SI_LogAdd(text, name)
+
+	if logSuccess and SI_Global.DebugLog then
 		SI_Print("IGNORED: " .. name .. ": " .. text)
 	end
-
-	SI_LogAdd(text, name)
 end
 
 SI_LogAdd = function(text, name)
 	for _, msg in SI_Log do
 		if msg[1] == name and msg[2] == text then
-			return
+			return false
 		end
 	end
 	table.insert(SI_Log, {[1] = name, [2] = text})
+	return true
 end
 
 SI_LogGetByName = function(name)
