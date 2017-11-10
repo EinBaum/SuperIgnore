@@ -3,11 +3,11 @@
 - Temporary (timed) ignores
 - Ignore only in selected chat channels
 - Uses default WoW interface and /ignore command
+- Can show ignored messages in GUI
 - Works with Prat, WIM and WhisperFu
 
 ## Modules
-- Additional modules can be enabled at any time
-- Modules can filter names and messages
+- Included modules can filter names & messages:
 
 #### Special Snowflake Blocker
 - Blocks messages sent by players who have special characters in their names
@@ -22,3 +22,7 @@
 ## Preview
 
 ![Preview](/preview.jpg?raw=true "Preview")
+
+## Download
+
+![Download ZIP](https://github.com/EinBaum/SuperIgnore/releases "Download ZIP")
