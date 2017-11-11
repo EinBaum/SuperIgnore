@@ -1,0 +1,8 @@
+#!/bin/bash
+
+mkdir SuperIgnore
+mkdir SuperIgnore/ChatSanitizer
+cp ChatSanitizer/FilterLib.lua ChatSanitizer/FriendLib.lua SuperIgnore/ChatSanitizer
+cp -R modules README.md SuperIgnore.toc SuperIgnore.lua TODO.md LICENSE SuperIgnore
+zip -r SuperIgnore.zip SuperIgnore
+rm -rf SuperIgnore
