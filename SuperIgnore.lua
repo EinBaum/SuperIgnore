@@ -1,6 +1,6 @@
 
 local name = "SuperIgnore"
-local version = "1.3.4"
+local version = "1.4.0"
 
 local SS = {
 	["AddonName"]			= name,
@@ -20,6 +20,7 @@ local SS = {
 	["TextEnabled"]			= "Enabled",
 
 	["ChatIgnored"]			= "%s is now being ignored. Duration: %s.",
+	["ChatIgnoredReason"]	= "%s is now being ignored. Duration: %s. Reason: %s",
 	["ChatUnignored"]		= "%s is no longer being ignored.",
 	["ChatBlocked"]			= "Your message was not sent because are ignoring %s.",
 	["ChatSelf"]			= "You can't ignore yourself.",
@@ -66,6 +67,7 @@ local TI_AUTOBLOCK	= 1e31
 local B_NAME		= 1
 local B_DURATION	= 2
 local B_NOTIFIED	= 3
+local B_REASON		= 4
 
 local T_Time = {
 	TI_RELOG,
@@ -425,6 +427,10 @@ SI_FormatTime = function(t)
 	return "|cff" .. color .. "[" .. str .. "]|r "
 end
 
+SI_FormatReason = function(reason)
+	return "|cfffffff[" .. reason .. "]|r "
+end
+
 SI_FixPlayerName = function(name)
 	return string.gsub(name, "^%l", string.upper)
 end
@@ -460,6 +466,12 @@ SI_BannedGetDuration = function(index)
 end
 SI_BannedSetDuration = function(index, duration)
 	SI_Global.BannedPlayers[index][B_DURATION] = duration
+end
+SI_BannedGetReason = function(index)
+	return SI_Global.BannedPlayers[index][B_REASON]
+end
+SI_BannedSetReason = function(index, reason)
+	SI_Global.BannedPlayers[index][B_REASON] = reason
 end
 SI_BannedGetName = function(index)
 	return SI_Global.BannedPlayers[index][B_NAME]
@@ -610,7 +622,7 @@ SI_ChatFrame_OnEvent_Old	= nil
 SI_WIM_ChatFrame_OnEvent_Old= nil
 SI_SendChatMessage_Old		= nil
 
-SI_AddIgnore_New = function(name, quiet, banTime)
+SI_AddIgnore_New = function(name, quiet, banTime, reason)
 
 	name = SI_FixPlayerName(name)
 	if name == UnitName("player") then
@@ -625,15 +637,22 @@ SI_AddIgnore_New = function(name, quiet, banTime)
 	local index = SI_BannedGetIndex(name)
 	if index then
 		SI_BannedSetDuration(index, banTime)
+		SI_BannedSetReason(index, reason)
 	else
-		table.insert(SI_Global.BannedPlayers, {name, banTime, false})
+		table.insert(SI_Global.BannedPlayers, {name, banTime, false, reason})
 	end
 
 	SI_BannedSortByTime()
 	IgnoreList_Update()
 
 	if not quiet then
-		SI_Print(string.format(SS.ChatIgnored, name, SI_FormatTimeNoColor(banTime)))
+		if reason then
+			SI_Print(string.format(SS.ChatIgnoredReason,
+				name, SI_FormatTimeNoColor(banTime), reason))
+		else
+			SI_Print(string.format(SS.ChatIgnored,
+				name, SI_FormatTimeNoColor(banTime)))
+		end
 	end
 end
 
@@ -666,7 +685,13 @@ end
 SI_GetIgnoreName_New = function(index)
 	local banned = SI_Global.BannedPlayers[index]
 	if banned then
-		return SI_FormatTime(banned[B_DURATION]) .. banned[B_NAME]
+		local duration = banned[B_DURATION]
+		local reason = banned[B_REASON]
+		local text = SI_FormatTime(duration) .. banned[B_NAME]
+		if reason then
+			text = text .. " " .. SI_FormatReason(banned[B_REASON])
+		end
+		return text
 	else
 		return UNKNOWN
 	end
@@ -977,9 +1002,11 @@ SI_CreateTooltips = function()
 		b:SetScript("OnEnter", function()
 			local fauxIndex = FauxScrollFrame_GetOffset(FriendsFrameIgnoreScrollFrame) + index
 			local name = SI_BannedGetName(fauxIndex)
+			local reason = SI_BannedGetReason(fauxIndex)
 			local log = SI_LogGetByName(name)
+			local tooltipTitle = reason and (name .. " " .. SI_FormatReason(reason) or name
 			GameTooltip:SetOwner(b, "ANCHOR_CURSOR")
-			GameTooltip:SetText(name)
+			GameTooltip:SetText(tooltipTitle)
 			for _, v in log do
 				GameTooltip:AddLine(v, 1, 1, 1)
 			end

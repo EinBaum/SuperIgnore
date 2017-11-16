@@ -3,8 +3,15 @@
 - Temporary (timed) ignores
 - Ignore only in selected chat channels
 - Uses default WoW interface and /ignore command
+- You can add an ignore "reason"
 - Can show ignored messages in GUI
 - Works with Prat, WIM and WhisperFu
+
+## Chat Commands
+
+The /ignore command is modified so you can include an ignore reason:
+
+	/ignore Name REASON
 
 ## Modules
 - Included modules can filter names & messages:
