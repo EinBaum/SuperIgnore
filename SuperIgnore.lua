@@ -1,6 +1,6 @@
 
 local name = "SuperIgnore"
-local version = "1.4.1"
+local version = "1.4.2"
 
 local SS = {
 	["AddonName"]			= name,
@@ -1111,9 +1111,10 @@ SI_MainFrame:SetScript("OnEvent", function()
 					BanOptTrade		= true,
 					BanOptInvite	= true,
 					BanOptDuel		= true,
-
-					Mods			= {},
 				}
+			end
+			if not SI_Global.Mods then
+				SI_Global.Mods = {}
 			end
 
 			SI_HookFunctions()
