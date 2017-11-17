@@ -1,6 +1,6 @@
 
 local name = "SuperIgnore"
-local version = "1.4.0"
+local version = "1.4.1"
 
 local SS = {
 	["AddonName"]			= name,
@@ -49,7 +49,9 @@ local SS = {
 	["TimeWeek"]			= "Week",
 	["TimeMonth"]			= "Month",
 	["TimeForever"]			= "Forever",
-	["TimeAuto"]			= "Auto-Block"
+	["TimeAuto"]			= "Auto-Block",
+
+	["PopupRemove"]			= "Remove",
 }
 
 local T_RELOG		= 1
@@ -98,12 +100,14 @@ SI_OptionsFrame = nil
 SI_ModsFrame = nil
 SI_TimeCheck_Last = 0
 
+SI_LastIgnoreListButton = nil
+
 SI_Mods = {}
 SI_ModsFramePad = 0
 
 SI_Log = {}
 
-------------- Misc
+------------- GUI Misc
 
 SI_FrameCreateFrame = function(name, width, parent, x, y)
 	local f = CreateFrame("Frame", name, parent)
@@ -427,12 +431,23 @@ SI_FormatTime = function(t)
 	return "|cff" .. color .. "[" .. str .. "]|r "
 end
 
-SI_FormatReason = function(reason)
-	return "|cfffffff[" .. reason .. "]|r "
+SI_FormatReason = function(reason, maxLen)
+	if not reason then
+		return ""
+	end
+
+	if maxLen and maxLen <= 5 then
+		return ""
+	end
+
+	if maxLen and string.len(reason) > maxLen then
+		reason = string.sub(reason, 1, maxLen) .. "..."
+	end
+	return " |cffffffff[" .. reason .. "]|r"
 end
 
 SI_FixPlayerName = function(name)
-	return string.gsub(name, "^%l", string.upper)
+	return string.gsub(string.lower(name), "^%l", string.upper)
 end
 
 SI_StringFindPattern = function(s, r)
@@ -608,19 +623,28 @@ end
 
 ------------- Overrides
 
+SI_FriendsFrameIgnoreButton_OnClick_Old	= nil
+SI_AddIgnore_Old						= nil
+SI_AddOrDelIgnore_Old					= nil
+SI_DelIgnore_Old						= nil
+SI_GetIgnoreName_Old					= nil
+SI_GetNumIgnores_Old					= nil
+SI_GetSelectedIgnore_Old				= nil
+SI_SetSelectedIgnore_Old				= nil
+SI_TradeFrame_OnEvent_Old				= nil
+SI_StaticPopup_Show_Old					= nil
+SI_ChatFrame_OnEvent_Old				= nil
+SI_WIM_ChatFrame_OnEvent_Old			= nil
+SI_SendChatMessage_Old					= nil
 
-SI_AddIgnore_Old			= nil
-SI_AddOrDelIgnore_Old		= nil
-SI_DelIgnore_Old			= nil
-SI_GetIgnoreName_Old		= nil
-SI_GetNumIgnores_Old		= nil
-SI_GetSelectedIgnore_Old	= nil
-SI_SetSelectedIgnore_Old	= nil
-SI_TradeFrame_OnEvent_Old	= nil
-SI_StaticPopup_Show_Old		= nil
-SI_ChatFrame_OnEvent_Old	= nil
-SI_WIM_ChatFrame_OnEvent_Old= nil
-SI_SendChatMessage_Old		= nil
+SI_FriendsFrameIgnoreButton_OnClick_New = function()
+	local button = arg1
+	if button == "LeftButton" then
+		SI_FriendsFrameIgnoreButton_OnClick_Old()
+	elseif button == "RightButton" then
+		SI_RightClickMenu(this:GetID())
+	end
+end
 
 SI_AddIgnore_New = function(name, quiet, banTime, reason)
 
@@ -656,18 +680,18 @@ SI_AddIgnore_New = function(name, quiet, banTime, reason)
 	end
 end
 
-SI_AddOrDelIgnore_New = function(name)
+SI_AddOrDelIgnore_New = function(name, quiet, banTime, reason)
 	local index = SI_BannedGetIndex(name)
 	if index then
-		SI_DelIgnore_New(name)
+		SI_DelIgnore_New(name, quiet)
 	else
-		SI_AddIgnore_New(name)
+		SI_AddIgnore_New(name, quiet, banTime, reason)
 	end
 end
 
 SI_DelIgnore_New = function(name, quiet)
-
-	name = string.gsub(name, "^|cff([^|]+)|r ", "")
+	name = string.gsub(name, "^%|cff(.-)%|r ", "") -- Remove time
+	name = string.gsub(name, " %|cff(.-)%|r$", "") -- Remove reason
 	name = SI_FixPlayerName(name)
 
 	local index = SI_BannedGetIndex(name)
@@ -685,12 +709,10 @@ end
 SI_GetIgnoreName_New = function(index)
 	local banned = SI_Global.BannedPlayers[index]
 	if banned then
+		local name = banned[B_NAME]
 		local duration = banned[B_DURATION]
 		local reason = banned[B_REASON]
-		local text = SI_FormatTime(duration) .. banned[B_NAME]
-		if reason then
-			text = text .. " " .. SI_FormatReason(banned[B_REASON])
-		end
+		local text = SI_FormatTime(duration) .. name .. SI_FormatReason(reason, (23 - string.len(name)))
 		return text
 	else
 		return UNKNOWN
@@ -791,6 +813,9 @@ end
 
 SI_HookFunctions = function()
 
+	SI_FriendsFrameIgnoreButton_OnClick_Old = FriendsFrameIgnoreButton_OnClick
+	FriendsFrameIgnoreButton_OnClick = SI_FriendsFrameIgnoreButton_OnClick_New
+
 	SI_AddIgnore_Old			= AddIgnore
 	AddIgnore					= SI_AddIgnore_New
 
@@ -859,6 +884,9 @@ SI_ReplaceOldIgnores = function()
 	end
 end
 
+SI_RightClickMenu = function(index)
+	local name = SI_BannedGetName(index)
+end
 
 ------------- Log
 
@@ -1004,7 +1032,7 @@ SI_CreateTooltips = function()
 			local name = SI_BannedGetName(fauxIndex)
 			local reason = SI_BannedGetReason(fauxIndex)
 			local log = SI_LogGetByName(name)
-			local tooltipTitle = reason and (name .. " " .. SI_FormatReason(reason) or name
+			local tooltipTitle = name .. SI_FormatReason(reason)
 			GameTooltip:SetOwner(b, "ANCHOR_CURSOR")
 			GameTooltip:SetText(tooltipTitle)
 			for _, v in log do
@@ -1042,6 +1070,13 @@ SI_CreateFrames = function()
 	SI_CreateModsFrame()
 	SI_CreateTooltips()
 	SI_CreateShowButton()
+end
+
+SI_EnableIgnoreListRightclick = function()
+	for i = 1, 20 do
+		local item = getglobal("FriendsFrameIgnoreButton" .. i)
+		item:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+	end
 end
 
 ------------- Initialization
@@ -1083,6 +1118,7 @@ SI_MainFrame:SetScript("OnEvent", function()
 
 			SI_HookFunctions()
 			SI_CreateFrames()
+			SI_EnableIgnoreListRightclick()
 			SI_ApplyFilters()
 
 			SI_Print(string.format("%s %s loaded.", SS.AddonName, SS.AddonVersion))
@@ -1095,3 +1131,17 @@ SI_MainFrame:SetScript("OnEvent", function()
 		SI_ReplaceOldIgnores()
 	end
 end)
+
+SlashCmdList["IGNORE"] = function(msg)
+	local target = GetSlashCmdTarget(msg)
+	if target then
+		local _, _, name, reason = string.find(target, "^([^ ]+) +(.*)")
+		if name and reason then
+			SI_AddOrDelIgnore_New(name, false, nil, reason)
+		else
+			SI_AddOrDelIgnore_New(target)
+		end
+	else
+		ShowIgnorePanel()
+	end
+end
