@@ -1,19 +1,16 @@
 
 local name = "SuperIgnore"
-local version = "1.4.2"
+local version = "1.4.3"
 
 local SS = {
 	["AddonName"]			= name,
 	["AddonDir"]			= strlower(name),
 	["AddonVersion"] 		= version,
 
-	["AutoResponse"]		= "I'm ignoring you. (" .. name .. " AddOn)",
-
 	["TextOptions"] 		= "Ignore Filter",
 	["TextDuration"]		= "Default Ignore Time",
 	["TextWhisperBlock"]	= "Do not let me whisper\nignored players",
 	["TextWhisperUnignore"]	= "Unignore players if I\nwhisper them",
-	["TextAutoResponse"]	= "Notify ignored players\nwho interact with me\n(only once)",
 	["TextDebugLog"]		= "Debug: Log ignored\nactions in chat",
 
 	["TextInformation"]		= "Info",
@@ -68,7 +65,6 @@ local TI_AUTOBLOCK	= 1e31
 
 local B_NAME		= 1
 local B_DURATION	= 2
-local B_NOTIFIED	= 3
 local B_REASON		= 4
 
 local T_Time = {
@@ -494,12 +490,6 @@ end
 SI_BannedSetName = function(index, name)
 	SI_Global.BannedPlayers[index][B_NAME] = name
 end
-SI_BannedGetNotified = function(index)
-	return SI_Global.BannedPlayers[index][B_NOTIFIED]
-end
-SI_BannedSetNotified = function(index, notified)
-	SI_Global.BannedPlayers[index][B_NOTIFIED] = notified
-end
 
 SI_BannedSortByTime = function()
 	table.sort(SI_Global.BannedPlayers, function(a, b)
@@ -544,18 +534,6 @@ SI_CheckInteractRules = function(name)
 	end
 end
 
-SI_CheckAutoResponse = function(name)
-	if SI_Global.AutoResponse then
-		local index = SI_BannedGetIndex(name)
-		if index then
-			if not SI_BannedGetNotified(index) then
-				SI_BannedSetNotified(index, true)
-				SI_SendChatMessage_Old(SS.AutoResponse, "WHISPER", nil, name)
-			end
-		end
-	end
-end
-
 SI_CheckAutoBlock = function(name)
 	local index = SI_BannedGetIndex(name)
 	if not index then
@@ -595,18 +573,8 @@ SI_IsChatIgnored = function(event, arg1, arg2)
 			end
 		end
 
-		if arg1 and arg2 and type == "WHISPER_INFORM" then
-			if arg1 == SS.AutoResponse then
-				return true
-			end
-		end
-
 		if arg2 and SI_IsChannelBanned(type) then
 			if SI_FilterIsPlayerIgnored(arg2) then
-				if type == "WHISPER" then
-					SI_CheckAutoResponse(arg2)
-				end
-
 				SI_LogIgnore(arg1, arg2)
 				return true
 			end
@@ -663,7 +631,7 @@ SI_AddIgnore_New = function(name, quiet, banTime, reason)
 		SI_BannedSetDuration(index, banTime)
 		SI_BannedSetReason(index, reason)
 	else
-		table.insert(SI_Global.BannedPlayers, {name, banTime, false, reason})
+		table.insert(SI_Global.BannedPlayers, {name, banTime, nil, reason})
 	end
 
 	SI_BannedSortByTime()
@@ -736,14 +704,12 @@ SI_StaticPopup_Show_New = function(which, text_arg1, text_arg2, data)
 	if SI_Global.BanOptInvite then
 		if which == "PARTY_INVITE" then
 			if SI_FilterIsPlayerIgnored(name) then
-				SI_CheckAutoResponse(name)
 				DeclineGroup()
 				SI_LogIgnore(SS.LogInviteParty, name)
 				return
 			end
 		elseif which == "GUILD_INVITE" then
 			if SI_FilterIsPlayerIgnored(name) then
-				SI_CheckAutoResponse(name)
 				DeclineGuild()
 				SI_LogIgnore(SS.LogInviteGuild, name)
 				return
@@ -753,7 +719,6 @@ SI_StaticPopup_Show_New = function(which, text_arg1, text_arg2, data)
 	if SI_Global.BanOptDuel then
 		if which == "DUEL_REQUESTED" then
 			if SI_FilterIsPlayerIgnored(name) then
-				SI_CheckAutoResponse(name)
 				CancelDuel()
 				SI_LogIgnore(SS.LogDuel, name)
 				return
@@ -769,7 +734,6 @@ SI_TradeFrame_OnEvent_New = function()
 		if event == "TRADE_SHOW" or event == "TRADE_UPDATE" then
 			local name = UnitName("NPC")
 			if SI_FilterIsPlayerIgnored(name) then
-				SI_CheckAutoResponse(name)
 				CloseTrade()
 				SI_LogIgnore(SS.LogTrade, name)
 				return
@@ -956,9 +920,6 @@ SI_CreateOptionsFrame = function()
 	end)
 	pad = pad - 35
 
-	createOpt(102, "AutoResponse", SS.TextAutoResponse, pad)
-	pad = pad - 35
-
 	createOpt(103, "DebugLog", SS.TextDebugLog, pad)
 	pad = pad - 35
 
@@ -1095,7 +1056,6 @@ SI_MainFrame:SetScript("OnEvent", function()
 
 					WhisperBlock	= false,
 					WhisperUnignore	= true,
-					AutoResponse	= false,
 					DebugLog		= false,
 					BanDuration		= T_FOREVER,
 
