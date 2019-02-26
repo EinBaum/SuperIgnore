@@ -1,6 +1,6 @@
 
 local name = "SuperIgnore"
-local version = "1.4.3"
+local version = "1.4.4"
 
 local SS = {
 	["AddonName"]			= name,
@@ -300,6 +300,9 @@ SI_DelChatFilter = function(filter)
 end
 
 SI_FilterIsPlayerIgnored = function(name)
+	if name == nil then
+		return false
+	end
 	if name == UnitName("player") then
 		return false
 	end
@@ -566,14 +569,9 @@ SI_IsChatIgnored = function(event, arg1, arg2)
 				SI_LogIgnore(SS.LogInviteParty, name)
 				return true
 			end
-
-			if SI_FilterIsChatIgnored(arg1, nil, type) then
-				SI_LogIgnore(arg1, "SYSTEM")
-				return true
-			end
 		end
 
-		if arg2 and SI_IsChannelBanned(type) then
+		if arg1 and arg2 and SI_IsChannelBanned(type) then
 			if SI_FilterIsPlayerIgnored(arg2) then
 				SI_LogIgnore(arg1, arg2)
 				return true
@@ -615,6 +613,7 @@ SI_FriendsFrameIgnoreButton_OnClick_New = function()
 end
 
 SI_AddIgnore_New = function(name, quiet, banTime, reason)
+	if not name then return end
 
 	name = SI_FixPlayerName(name)
 	if name == UnitName("player") then
@@ -658,6 +657,8 @@ SI_AddOrDelIgnore_New = function(name, quiet, banTime, reason)
 end
 
 SI_DelIgnore_New = function(name, quiet)
+	if not name then return end
+
 	name = string.gsub(name, "^%|cff(.-)%|r ", "") -- Remove time
 	name = string.gsub(name, " %|cff(.-)%|r$", "") -- Remove reason
 	name = SI_FixPlayerName(name)
@@ -843,8 +844,10 @@ SI_ReplaceOldIgnores = function()
 	end
 
 	for _, name in oldNames do
-		SI_DelIgnore_Old(name)
-		SI_AddIgnore_New(name, true)
+		if name then
+			SI_DelIgnore_Old(name)
+			SI_AddIgnore_New(name, true)
+		end
 	end
 end
 
