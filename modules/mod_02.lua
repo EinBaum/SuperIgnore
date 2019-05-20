@@ -32,7 +32,7 @@ m.chatfilter = function(message, name, type)
 
 	message = strupper(message)
 	for _, p in phrases do
-		if strfind(message, p) then
+		if strfind(message, p, nil, true) then
 			return true
 		end
 	end
