@@ -32,12 +32,11 @@ The /ignore command is modified so you can include an ignore reason:
 
 ## Download
 
-GitHub's "Clone or download" button fails to download all dependencies.
-
-Download one of the releases here
-
-[Releases](https://github.com/EinBaum/SuperIgnore/releases)
+[Click here to 
+download](https://github.com/EinBaum/SuperIgnore/releases)
 
 or clone the project using
 
 	git clone --recursive https://github.com/EinBaum/SuperIgnore.git
+
+(Do not click "Clone or download" on the GitHub page)
