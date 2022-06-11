@@ -544,12 +544,17 @@ SI_CheckAutoBlock = function(name)
 	end
 end
 
-SI_IsChatIgnored = function(event, arg1, arg2)
+SI_IsChatIgnored = function(event, arg1, arg2, arg3, arg4)
 
 	if strsub(event, 1, 8) == "CHAT_MSG" then
 		local type = strsub(event, 10)
 		if type == "IGNORED" then
 			return true
+		end
+		
+		local source = strsub(type,1,1)
+		if type == "CHANNEL" and arg4 then
+			source = strsub(arg4,1,1)
 		end
 
 		if arg1 and type == "SYSTEM" then
@@ -560,25 +565,25 @@ SI_IsChatIgnored = function(event, arg1, arg2)
 
 			found, _, name = SI_StringFindPattern(arg1, ERR_INVITED_TO_GUILD_SS)
 			if found and name and SI_FilterIsPlayerIgnored(name) then
-				SI_LogIgnore(SS.LogInviteGuild, name)
+				SI_LogIgnore(SS.LogInviteGuild, name, "ginvite")
 				return true
 			end
 
 			found, _, name = SI_StringFindPattern(arg1, ERR_INVITED_TO_GROUP_S)
 			if found and name and SI_FilterIsPlayerIgnored(name) then
-				SI_LogIgnore(SS.LogInviteParty, name)
+				SI_LogIgnore(SS.LogInviteParty, name, "invite")
 				return true
 			end
 		end
 
 		if arg1 and arg2 and SI_IsChannelBanned(type) then
 			if SI_FilterIsPlayerIgnored(arg2) then
-				SI_LogIgnore(arg1, arg2)
+				SI_LogIgnore(arg1, arg2, source)
 				return true
 			end
 
 			if SI_FilterIsChatIgnored(arg1, arg2, type) then
-				SI_LogIgnore(arg1, arg2)
+				SI_LogIgnore(arg1, arg2, source)
 				return true
 			end
 		end
@@ -746,19 +751,19 @@ SI_TradeFrame_OnEvent_New = function()
 end
 
 SI_ChatFrame_OnEvent_New = function(event)
-	if not SI_IsChatIgnored(event, arg1, arg2) then
+	if not SI_IsChatIgnored(event, arg1, arg2, agr3, arg4) then
 		SI_ChatFrame_OnEvent_Old(event)
 	end
 end
 
 SI_WIM_ChatFrame_OnEvent_New = function(event)
-	if not SI_IsChatIgnored(event, arg1, arg2) then
+	if not SI_IsChatIgnored(event, arg1, arg2, agr3, arg4) then
 		SI_WIM_ChatFrame_OnEvent_Old(event)
 	end
 end
 
 SI_WhisperFu_OnReceiveWhisper_New = function()
-	if not SI_IsChatIgnored("CHAT_MSG_WHISPER", arg1, arg2) then
+	if not SI_IsChatIgnored("CHAT_MSG_WHISPER", arg1, arg2, agr3, arg4) then
 		WhisperFu:OnReceiveWhisper_Old()
 	end
 end
@@ -858,11 +863,12 @@ end
 ------------- Log
 
 
-SI_LogIgnore = function(text, name)
+SI_LogIgnore = function(text, name, source)
 	local logSuccess = SI_LogAdd(text, name)
+	if not source then source = "" end
 
 	if logSuccess and SI_Global.DebugLog then
-		SI_Print("IGNORED: " .. name .. ": " .. text)
+		SI_Print("IGNORED: ["..source.."] " .. "\124cffff10f0\124Hplayer:"..name.."\124h["..name.."]\124h\124r" .. ": " .. text)
 	end
 end
 
