@@ -757,13 +757,13 @@ SI_ChatFrame_OnEvent_New = function(event)
 end
 
 SI_WIM_ChatFrame_OnEvent_New = function(event)
-	if not SI_IsChatIgnored(event, arg1, arg2, agr3, arg4) then
+	if not SI_IsChatIgnored(event, arg1, arg2, arg3, arg4) then
 		SI_WIM_ChatFrame_OnEvent_Old(event)
 	end
 end
 
 SI_WhisperFu_OnReceiveWhisper_New = function()
-	if not SI_IsChatIgnored("CHAT_MSG_WHISPER", arg1, arg2, agr3, arg4) then
+	if not SI_IsChatIgnored("CHAT_MSG_WHISPER", arg1, arg2, arg3, arg4) then
 		WhisperFu:OnReceiveWhisper_Old()
 	end
 end
