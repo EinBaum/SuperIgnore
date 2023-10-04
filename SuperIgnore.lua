@@ -519,6 +519,7 @@ SI_IsChannelBanned = function(c)
 	if(c == "BATTLEGROUND" or c == "BATTLEGROUND_LEADER")
 						then return g.BanOptBg end
 	if c == "CHANNEL"	then return g.BanOptPublic end
+	if c == "HARDCORE"  then return g.BanOptPublic end
 	if(c == "EMOTE" or c == "TEXT_EMOTE")
 						then return g.BanOptEmote end
 
